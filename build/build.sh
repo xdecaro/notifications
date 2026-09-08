@@ -14,6 +14,14 @@ while IFS= read -r -d '' php_file; do
     php -l "$php_file" >/dev/null
 done < <(find "$COMPONENT" -type f -name '*.php' -print0)
 
+# Joomla DatabaseQuery::bind() receives its value by reference. Inline
+# assignments such as bind(':state', $state = 'pending') are invalid at
+# runtime even though PHP lint accepts them.
+if grep -R -nE --include='*.php' -- '->bind\([^,]+,[[:space:]]*\$[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' "$COMPONENT"; then
+    echo "Inline assignment passed to DatabaseQuery::bind(); bind a declared variable instead." >&2
+    exit 1
+fi
+
 php -r '
 libxml_use_internal_errors(true);
 $version = trim(file_get_contents($argv[1]));
@@ -40,13 +48,24 @@ if (trim((string) $manifest->update->schemas->schemapath) !== "sql/updates/mysql
 }
 ' "$ROOT/VERSION" "$MANIFEST"
 
-if ! grep -q '#__xdecaronotifications_items' "$COMPONENT/admin/sql/install.mysql.utf8mb4.sql"; then
-    echo "Notifications install SQL must use the reserved #__xdecaronotifications_* namespace." >&2
-    exit 1
-fi
+for table in \
+    '#__xdecaronotifications_items' \
+    '#__xdecaronotifications_preferences' \
+    '#__xdecaronotifications_deliveries' \
+    '#__xdecaronotifications_delivery_attempts'; do
+    if ! grep -q "$table" "$COMPONENT/admin/sql/install.mysql.utf8mb4.sql"; then
+        echo "Missing expected Notifications table: $table" >&2
+        exit 1
+    fi
+done
 
 if grep -R --line-number --fixed-strings '#__xdecaro_notifications' "$COMPONENT"; then
     echo "Obsolete Notifications table namespace detected." >&2
+    exit 1
+fi
+
+if [ ! -f "$COMPONENT/admin/sql/updates/mysql/0.3.0.sql" ]; then
+    echo "Missing 0.3.0 SQL update." >&2
     exit 1
 fi
 
@@ -85,9 +104,20 @@ with ZipFile(zip_path) as zf:
         'admin/services/provider.php',
         'admin/sql/install.mysql.utf8mb4.sql',
         'admin/sql/updates/mysql/0.2.0.sql',
+        'admin/sql/updates/mysql/0.3.0.sql',
         'admin/src/Service/NotificationService.php',
+        'admin/src/Service/PreferenceService.php',
+        'admin/src/Service/DeliveryService.php',
+        'admin/src/Service/DeliveryChannelInterface.php',
+        'admin/src/Service/DeliveryResult.php',
+        'admin/src/Service/ChannelRegistry.php',
+        'admin/src/Service/InAppChannel.php',
         'admin/src/Model/NotificationsModel.php',
+        'admin/src/Model/DeliveriesModel.php',
+        'admin/src/Model/PreferencesModel.php',
         'admin/tmpl/notifications/default.php',
+        'admin/tmpl/deliveries/default.php',
+        'admin/tmpl/preferences/default.php',
     }
     missing = required - names
     if missing:

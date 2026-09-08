@@ -6,7 +6,7 @@
   <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <description>COM_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
   <namespace path="src">Xdecaro\Component\Notifications</namespace>
 
@@ -15,6 +15,8 @@
     <submenu>
       <menu view="dashboard">COM_XDECARONOTIFICATIONS_DASHBOARD</menu>
       <menu view="notifications">COM_XDECARONOTIFICATIONS_NOTIFICATIONS</menu>
+      <menu view="deliveries">COM_XDECARONOTIFICATIONS_DELIVERIES</menu>
+      <menu view="preferences">COM_XDECARONOTIFICATIONS_PREFERENCES</menu>
     </submenu>
     <files folder="admin">
       <filename>access.xml</filename>

@@ -8,30 +8,34 @@ Notifications is the shared notification center for the xdecaro Joomla ecosystem
 - PHP namespace: `Xdecaro\Component\Notifications`
 - Reserved package identity: `pkg_xdecaronotifications`
 - Database namespace: `#__xdecaronotifications_*`
-- Current primary table: `#__xdecaronotifications_items`
+- Notification table: `#__xdecaronotifications_items`
+- Preference table: `#__xdecaronotifications_preferences`
+- Delivery table: `#__xdecaronotifications_deliveries`
+- Attempt history: `#__xdecaronotifications_delivery_attempts`
 
-Notifications owns notification persistence, recipients, read/unread state, priorities, expiry and notification history. Source-domain business rules remain in the originating component.
+Source-domain business rules remain in the originating component. Notifications owns the resulting notification record, recipient preferences and delivery lifecycle.
 
 ## Core integration
 
-Core remains optional. Notifications 0.2.0 can use:
+Core remains optional. Notifications 0.3.0 supports:
 
 - `Xdecaro\Core\Integration\EntityReference`
 - `Xdecaro\Core\Integration\Capability`
 - `Xdecaro\Core\Integration\IntegrationEvent`
 - shared Core UI assets when available
 
-Implemented capabilities in 0.2.0:
+Public capabilities:
 
 - `notifications.publish`
 - `notifications.state`
 - `notifications.unread_count`
-
-Do not declare preferences or delivery-channel capabilities until those features are actually implemented.
+- `notifications.preferences`
+- `notifications.delivery_status`
+- `notifications.delivery_channels`
 
 ## Public component API
 
-Other xdecaro products must not query Notifications tables directly. Boot the component through Joomla and use its public service:
+Other xdecaro products must not query Notifications tables directly. Boot the component through Joomla:
 
 ```php
 use Joomla\CMS\Factory;
@@ -41,52 +45,76 @@ $component = Factory::getApplication()->bootComponent('com_xdecaronotifications'
 
 if ($component instanceof NotificationsComponent) {
     $notificationId = $component->getNotificationService()->create([
-        'external_key'    => 'document-expiry:300:2026-09-30',
-        'source_component'=> 'com_xdecarodocuments',
-        'source_entity'   => 'document',
-        'source_id'       => '300',
-        'recipient_type'  => 'user',
-        'recipient_id'    => '42',
-        'category'        => 'documents',
-        'priority'        => 'high',
-        'title'           => 'Document expiring',
-        'message'         => 'A document requires attention.',
+        'external_key'     => 'document-expiry:300:2026-09-30',
+        'source_component' => 'com_xdecarodocuments',
+        'source_entity'    => 'document',
+        'source_id'        => '300',
+        'recipient_type'   => 'user',
+        'recipient_id'     => '42',
+        'category'         => 'documents',
+        'priority'         => 'high',
+        'title'            => 'Document expiring',
+        'message'          => 'A document requires attention.',
     ]);
+
+    $component->getDeliveryService()->queueForNotification(
+        $notificationId,
+        ['in_app', 'email']
+    );
 }
 ```
 
-`external_key` is idempotent within the source component, so safe retries do not create duplicate notifications.
+`external_key` is idempotent within the source component. Delivery rows are also idempotent per notification/channel.
 
-When Core 1.2.0+ is installed, `CoreIntegrationService::createFromEvent()` can adapt a Core `IntegrationEvent` into the same persistence API without moving source-domain rules into Notifications.
+## Preferences
+
+Preferences are resolved by recipient, category and channel. A category-specific rule takes precedence over the `*` wildcard rule.
+
+```php
+$preferences = $component->getPreferenceService();
+$preferences->setPreference('user', '42', '*', 'email', true);
+$preferences->setPreference('user', '42', 'marketing', 'email', false);
+```
+
+Removing a rule restores default behavior rather than creating a second implicit state.
+
+## Delivery adapters
+
+`in_app` is included natively. Email, PEC, push and future channels must be optional adapters implementing `DeliveryChannelInterface` and registered through:
+
+```php
+$component->registerDeliveryChannel($channelAdapter);
+```
+
+Adapters return `DeliveryResult` and must not write Notifications tables. `DeliveryService` owns queue state, atomic claims, attempts, retry scheduling, permanent failures and delivery status.
+
+Missing adapters do not break Notifications; queued deliveries remain pending and are retried later.
 
 ## Administrator UI
 
-0.2.0 adds:
+0.3.0 provides:
 
-- dashboard counters;
-- recent notifications;
-- notification center list;
-- search;
-- state, priority and category filters;
-- pagination;
-- mark-as-read action;
-- archive action;
-- Joomla CSRF and ACL checks on state-changing actions;
-- Core shared UI assets when available, with Joomla fallback when Core is absent.
+- dashboard notification and delivery-health counters;
+- notification center with search/filter/pagination;
+- Deliveries screen with channel/state filters, attempts and last error;
+- secure manual queue processing;
+- Preferences screen with recipient/category/channel rules;
+- mark-read and archive actions;
+- Joomla ACL and CSRF checks on state-changing actions;
+- responsive Core shared UI when available, with Joomla fallback when Core is absent.
 
 ## Current boundaries
 
-Not yet implemented and therefore not advertised as public capability:
+Not yet implemented:
 
-- user notification preferences;
-- email / PEC / push delivery channels;
-- delivery attempts and retry queue;
+- concrete email/PEC/push adapters;
+- automatic adapter discovery through Joomla plugins;
+- Joomla Scheduled Tasks worker registration;
 - digest notifications;
-- browser push;
-- automatic global event listeners;
+- browser push subscription management;
 - scheduled expiry scanning.
 
-Those should be added incrementally after the persistence and public-service boundary is proven.
+Communications remains the owner of official/manual communications and PEC workflows. Notifications must not become a second Communications component.
 
 ## Compatibility
 

@@ -7,30 +7,29 @@ use Joomla\CMS\Router\Route;
 ?>
 <div class="xdecaro-scope">
     <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3">
-            <div class="card h-100"><div class="card-body">
-                <div class="text-body-secondary small"><?php echo Text::_('COM_XDECARONOTIFICATIONS_TOTAL'); ?></div>
-                <div class="display-6 fw-semibold"><?php echo (int) ($this->stats['total'] ?? 0); ?></div>
-            </div></div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="card h-100"><div class="card-body">
-                <div class="text-body-secondary small"><?php echo Text::_('COM_XDECARONOTIFICATIONS_UNREAD'); ?></div>
-                <div class="display-6 fw-semibold"><?php echo (int) ($this->stats['unread'] ?? 0); ?></div>
-            </div></div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="card h-100"><div class="card-body">
-                <div class="text-body-secondary small"><?php echo Text::_('COM_XDECARONOTIFICATIONS_CRITICAL'); ?></div>
-                <div class="display-6 fw-semibold"><?php echo (int) ($this->stats['critical'] ?? 0); ?></div>
-            </div></div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="card h-100"><div class="card-body">
-                <div class="text-body-secondary small"><?php echo Text::_('COM_XDECARONOTIFICATIONS_ARCHIVED_COUNT'); ?></div>
-                <div class="display-6 fw-semibold"><?php echo (int) ($this->stats['archived'] ?? 0); ?></div>
-            </div></div>
-        </div>
+        <?php
+        $cards = [
+            ['COM_XDECARONOTIFICATIONS_TOTAL', 'total'],
+            ['COM_XDECARONOTIFICATIONS_UNREAD', 'unread'],
+            ['COM_XDECARONOTIFICATIONS_CRITICAL', 'critical'],
+            ['COM_XDECARONOTIFICATIONS_ARCHIVED_COUNT', 'archived'],
+            ['COM_XDECARONOTIFICATIONS_DELIVERY_PENDING', 'delivery_pending'],
+            ['COM_XDECARONOTIFICATIONS_DELIVERY_FAILED', 'delivery_failed'],
+        ];
+        foreach ($cards as $card) : ?>
+            <div class="col-6 col-lg-4 col-xl-2">
+                <div class="card h-100"><div class="card-body">
+                    <div class="text-body-secondary small"><?php echo Text::_($card[0]); ?></div>
+                    <div class="display-6 fw-semibold"><?php echo (int) ($this->stats[$card[1]] ?? 0); ?></div>
+                </div></div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a class="btn btn-primary" href="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=notifications'); ?>"><?php echo Text::_('COM_XDECARONOTIFICATIONS_OPEN_CENTER'); ?></a>
+        <a class="btn btn-outline-secondary" href="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=deliveries'); ?>"><?php echo Text::_('COM_XDECARONOTIFICATIONS_DELIVERIES'); ?></a>
+        <a class="btn btn-outline-secondary" href="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=preferences'); ?>"><?php echo Text::_('COM_XDECARONOTIFICATIONS_PREFERENCES'); ?></a>
     </div>
 
     <div class="card">

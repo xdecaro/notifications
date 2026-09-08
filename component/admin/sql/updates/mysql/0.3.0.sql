@@ -1,33 +1,3 @@
-CREATE TABLE IF NOT EXISTS `#__xdecaronotifications_items` (
-  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `external_key` VARCHAR(191) NULL,
-  `source_component` VARCHAR(100) NOT NULL DEFAULT '',
-  `source_entity` VARCHAR(64) NOT NULL DEFAULT '',
-  `source_id` VARCHAR(128) NOT NULL DEFAULT '',
-  `recipient_type` VARCHAR(32) NOT NULL,
-  `recipient_id` VARCHAR(128) NOT NULL,
-  `category` VARCHAR(64) NOT NULL DEFAULT 'general',
-  `priority` VARCHAR(16) NOT NULL DEFAULT 'normal',
-  `title` VARCHAR(255) NOT NULL,
-  `message` TEXT NOT NULL,
-  `action_url` VARCHAR(2048) NULL,
-  `payload` MEDIUMTEXT NULL,
-  `state` VARCHAR(16) NOT NULL DEFAULT 'unread',
-  `created` DATETIME NOT NULL,
-  `created_by` BIGINT UNSIGNED NOT NULL DEFAULT 0,
-  `read_at` DATETIME NULL,
-  `archived_at` DATETIME NULL,
-  `expires_at` DATETIME NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_notifications_external` (`source_component`, `external_key`),
-  KEY `idx_notifications_recipient_state` (`recipient_type`, `recipient_id`, `state`),
-  KEY `idx_notifications_source` (`source_component`, `source_entity`, `source_id`),
-  KEY `idx_notifications_priority` (`priority`),
-  KEY `idx_notifications_category` (`category`),
-  KEY `idx_notifications_created` (`created`),
-  KEY `idx_notifications_expires` (`expires_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS `#__xdecaronotifications_preferences` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `recipient_type` VARCHAR(32) NOT NULL,

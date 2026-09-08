@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
+  <fieldset name="delivery" label="COM_XDECARONOTIFICATIONS_CONFIG_DELIVERY">
+    <field
+      name="worker_batch"
+      type="number"
+      label="COM_XDECARONOTIFICATIONS_CONFIG_WORKER_BATCH"
+      description="COM_XDECARONOTIFICATIONS_CONFIG_WORKER_BATCH_DESC"
+      default="25"
+      min="1"
+      max="100"
+      filter="integer"
+    />
+    <field
+      name="max_attempts"
+      type="number"
+      label="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS"
+      description="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS_DESC"
+      default="5"
+      min="1"
+      max="50"
+      filter="integer"
+    />
+  </fieldset>
+
   <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL">
     <field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" validate="rules" component="com_xdecaronotifications" section="component" />
   </fieldset>

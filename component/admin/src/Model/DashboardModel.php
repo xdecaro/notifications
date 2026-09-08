@@ -21,11 +21,21 @@ final class DashboardModel extends BaseDatabaseModel
 
         $row = $db->setQuery($query)->loadAssoc() ?: [];
 
+        $deliveryQuery = $db->getQuery(true)
+            ->select([
+                "SUM(CASE WHEN " . $db->quoteName('state') . " IN ('pending','retry','processing') THEN 1 ELSE 0 END) AS pending",
+                "SUM(CASE WHEN " . $db->quoteName('state') . " = 'failed' THEN 1 ELSE 0 END) AS failed",
+            ])
+            ->from($db->quoteName('#__xdecaronotifications_deliveries'));
+        $delivery = $db->setQuery($deliveryQuery)->loadAssoc() ?: [];
+
         return [
-            'total'    => (int) ($row['total'] ?? 0),
-            'unread'   => (int) ($row['unread'] ?? 0),
-            'critical' => (int) ($row['critical'] ?? 0),
-            'archived' => (int) ($row['archived'] ?? 0),
+            'total'             => (int) ($row['total'] ?? 0),
+            'unread'            => (int) ($row['unread'] ?? 0),
+            'critical'          => (int) ($row['critical'] ?? 0),
+            'archived'          => (int) ($row['archived'] ?? 0),
+            'delivery_pending'  => (int) ($delivery['pending'] ?? 0),
+            'delivery_failed'   => (int) ($delivery['failed'] ?? 0),
         ];
     }
 
