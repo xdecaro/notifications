@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="package" method="upgrade">
+  <name>Notifications by xdecaro</name>
+  <packagename>xdecaronotifications</packagename>
+  <author>Luca De Caro</author>
+  <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
+  <creationDate>2026-09-09</creationDate>
+  <copyright>Copyright (C) 2026 Luca De Caro</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <version>1.0.0</version>
+  <description>Shared notification center, delivery worker and automatic email channel for the xdecaro Joomla ecosystem.</description>
+  <blockChildUninstall>true</blockChildUninstall>
+  <scriptfile>script.php</scriptfile>
+  <files>
+    <file type="component" id="com_xdecaronotifications">com_xdecaronotifications.zip</file>
+    <file type="plugin" id="xdecaronotifications" group="task">plg_task_xdecaronotifications.zip</file>
+    <file type="plugin" id="email" group="xdecaronotifications">plg_xdecaronotifications_email.zip</file>
+  </files>
+  <updateservers>
+    <server type="extension" priority="1" name="Notifications by xdecaro Updates">https://raw.githubusercontent.com/xdecaro/notifications/main/updates/pkg_xdecaronotifications.xml</server>
+  </updateservers>
+  <changelogurl>https://raw.githubusercontent.com/xdecaro/notifications/main/updates/changelog.xml</changelogurl>
+</extension>
