@@ -55,12 +55,27 @@ foreach ([
     exit(1);
   }
 }
+$componentManifest = simplexml_load_file($root . "/component/xdecaronotifications.xml");
+foreach ($componentManifest->install->sql->file as $sqlFile) {
+  $path = trim((string) $sqlFile);
+  if ($path === "" || !is_file($root . "/component/" . $path)) {
+    fwrite(STDERR, "Component install SQL path does not exist: {$path}\n");
+    exit(1);
+  }
+}
+foreach ($componentManifest->update->schemas->schemapath as $schemaPath) {
+  $path = trim((string) $schemaPath);
+  if ($path === "" || !is_dir($root . "/component/" . $path)) {
+    fwrite(STDERR, "Component schema update path does not exist: {$path}\n");
+    exit(1);
+  }
+}
 $feed = simplexml_load_file($root . "/updates/pkg_xdecaronotifications.xml");
 if (trim((string) $feed->update->version) !== $version) {
   fwrite(STDERR, "VERSION mismatch in update feed.\n");
   exit(1);
 }
-' 
+'
 
 for table in \
   '#__xdecaronotifications_items' \
