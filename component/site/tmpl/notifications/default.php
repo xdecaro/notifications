@@ -31,5 +31,21 @@ if ($this->guest) : ?>
     <?php endforeach; ?>
   </div>
 
-  <div class="card mt-4"><div class="card-body"><h2 class="h5"><?php echo Text::_('COM_DECARONOTIFICATIONS_PREFERENCES'); ?></h2><form method="post" action="<?php echo Route::_('index.php?option=com_decaronotifications&task=preferences.save'); ?>" class="row g-3 align-items-end"><div class="col-md-5"><label class="form-label" for="notifications-enabled"><?php echo Text::_('COM_DECARONOTIFICATIONS_INTERNAL_CHANNEL'); ?></label><select class="form-select" id="notifications-enabled" name="enabled"><option value="1"<?php echo $this->preference['enabled'] ? ' selected' : ''; ?>><?php echo Text::_('JENABLED'); ?></option><option value="0"<?php echo !$this->preference['enabled'] ? ' selected' : ''; ?>><?php echo Text::_('JDISABLED'); ?></option></select></div><div class="col-md-5"><label class="form-label" for="notifications-digest"><?php echo Text::_('COM_DECARONOTIFICATIONS_DIGEST'); ?></label><select class="form-select" id="notifications-digest" name="digest"><option value="immediate"<?php echo $this->preference['digest'] === 'immediate' ? ' selected' : ''; ?>><?php echo Text::_('COM_DECARONOTIFICATIONS_IMMEDIATE'); ?></option><option value="daily"<?php echo $this->preference['digest'] === 'daily' ? ' selected' : ''; ?>><?php echo Text::_('COM_DECARONOTIFICATIONS_DAILY'); ?></option><option value="weekly"<?php echo $this->preference['digest'] === 'weekly' ? ' selected' : ''; ?>><?php echo Text::_('COM_DECARONOTIFICATIONS_WEEKLY'); ?></option></select></div><div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><?php echo Text::_('JSAVE'); ?></button></div><?php echo HTMLHelper::_('form.token'); ?></form></div></div>
+  <div class="card mt-4">
+    <div class="card-body">
+      <h2 class="h5"><?php echo Text::_('COM_DECARONOTIFICATIONS_PREFERENCES'); ?></h2>
+      <p class="text-body-secondary"><?php echo Text::_('COM_DECARONOTIFICATIONS_INTERNAL_ONLY_NOTE'); ?></p>
+      <form method="post" action="<?php echo Route::_('index.php?option=com_decaronotifications&task=preferences.save'); ?>" class="row g-3 align-items-end">
+        <div class="col-md-8">
+          <label class="form-label" for="notifications-enabled"><?php echo Text::_('COM_DECARONOTIFICATIONS_INTERNAL_CHANNEL'); ?></label>
+          <select class="form-select" id="notifications-enabled" name="enabled">
+            <option value="1"<?php echo $this->preference['enabled'] ? ' selected' : ''; ?>><?php echo Text::_('JENABLED'); ?></option>
+            <option value="0"<?php echo !$this->preference['enabled'] ? ' selected' : ''; ?>><?php echo Text::_('JDISABLED'); ?></option>
+          </select>
+        </div>
+        <div class="col-md-4"><button class="btn btn-primary w-100" type="submit"><?php echo Text::_('JSAVE'); ?></button></div>
+        <?php echo HTMLHelper::_('form.token'); ?>
+      </form>
+    </div>
+  </div>
 </div>
