@@ -105,7 +105,12 @@ final class DeliveryService
     {
         $limit       = max(1, min(100, $limit));
         $maxAttempts = max(1, min(50, $maxAttempts));
-        $rows        = $this->getPendingCandidates($limit);
+
+        // A worker may terminate after claiming a delivery. Recover claims that
+        // have been stuck for 15 minutes so they can safely re-enter the queue.
+        $this->recoverStaleClaims(900);
+
+        $rows = $this->getPendingCandidates($limit);
         $stats = [
             'processed'       => 0,
             'delivered'       => 0,
@@ -235,6 +240,30 @@ final class DeliveryService
             ->bind(':now', $now);
 
         return (array) $this->db->setQuery($query, 0, $limit)->loadAssocList();
+    }
+
+    private function recoverStaleClaims(int $timeoutSeconds): void
+    {
+        $timeoutSeconds = max(60, min(86400, $timeoutSeconds));
+        $cutoff = Factory::getDate('-' . $timeoutSeconds . ' seconds')->toSql();
+        $now    = Factory::getDate()->toSql();
+
+        $query = $this->db->getQuery(true)
+            ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
+            ->set($this->db->quoteName('state') . ' = :retry_state')
+            ->set($this->db->quoteName('available_at') . ' = :available_at')
+            ->set($this->db->quoteName('updated') . ' = :updated')
+            ->set($this->db->quoteName('last_error') . ' = :last_error')
+            ->where($this->db->quoteName('state') . ' = :processing_state')
+            ->where($this->db->quoteName('updated') . ' < :cutoff')
+            ->bind(':retry_state', $retry = 'retry')
+            ->bind(':available_at', $now)
+            ->bind(':updated', $now)
+            ->bind(':last_error', $error = 'Recovered stale delivery claim after worker interruption.')
+            ->bind(':processing_state', $processing = 'processing')
+            ->bind(':cutoff', $cutoff);
+
+        $this->db->setQuery($query)->execute();
     }
 
     private function claim(int $deliveryId): bool
