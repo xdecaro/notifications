@@ -1,0 +1,56 @@
+name: Build Notifications
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Validate PHP
+        run: |
+          find component tests -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/recipient-reference-smoke.php
+      - name: Validate XML and versions
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libxml2-utils
+          find component package updates -name '*.xml' -print0 | xargs -0 -n1 xmllint --noout
+          python3 - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          version = pathlib.Path('VERSION').read_text().strip()
+          for path in ['component/decaronotifications.xml', 'package/pkg_decaronotifications.xml', 'updates/pkg_decaronotifications.xml']:
+              root = ET.parse(path).getroot()
+              node = root.find('version') if root.tag == 'extension' else root.find('./update/version')
+              assert node is not None and node.text == version, f'{path}: version mismatch'
+          PY
+      - name: Guard schema and boundaries
+        run: |
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+          grep -Rni '#__decaronotifications_' component/admin/sql >/dev/null
+          ! grep -RniE '#__(decaro)?(forms|courses|competitions|documents|membership|finance|protocol|people|organizations|resources|inventory)_' component --include='*.php' --include='*.sql'
+      - name: Deterministic build A
+        run: |
+          bash build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/notifications-sums
+      - name: Deterministic build B
+        run: |
+          bash build/build.sh
+          diff -u /tmp/notifications-sums dist/SHA256SUMS.txt
+          for file in dist/*.zip; do unzip -t "$file" >/dev/null; done
+      - uses: actions/upload-artifact@v4
+        if: matrix.php == '8.3'
+        with:
+          name: notifications-${{ github.sha }}
+          path: dist/

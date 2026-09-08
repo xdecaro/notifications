@@ -5,12 +5,17 @@ defined('_JEXEC') or die;
 
 use Xdecaro\Core\Integration\Capability;
 use Xdecaro\Core\Integration\EntityReference;
+use Xdecaro\Core\Integration\IntegrationEvent;
 
 final class CoreIntegrationService
 {
+    public const MINIMUM_CORE_VERSION = '1.2.0';
+
     public function isAvailable(): bool
     {
-        return class_exists(Capability::class) && class_exists(EntityReference::class);
+        return class_exists(Capability::class)
+            && class_exists(EntityReference::class)
+            && class_exists(IntegrationEvent::class);
     }
 
     /** @return array<int,Capability> */

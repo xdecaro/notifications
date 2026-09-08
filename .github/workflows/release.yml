@@ -1,0 +1,78 @@
+name: Release Notifications package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - VERSION
+      - .github/workflows/release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Read version
+        run: echo "VERSION=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_ENV"
+      - name: Refuse existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Release v${VERSION} already exists"
+            exit 1
+          fi
+      - name: Validate sources
+        run: |
+          find component tests -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/recipient-reference-smoke.php
+          python3 - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          v = pathlib.Path('VERSION').read_text().strip()
+          for p in ['component/decaronotifications.xml','package/pkg_decaronotifications.xml','updates/pkg_decaronotifications.xml']:
+              r = ET.parse(p).getroot()
+              n = r.find('version') if r.tag == 'extension' else r.find('./update/version')
+              assert n is not None and n.text == v, f'{p}: version mismatch'
+          PY
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+      - name: Build deterministic packages
+        run: |
+          bash build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/notifications-sums
+          bash build/build.sh
+          diff -u /tmp/notifications-sums dist/SHA256SUMS.txt
+          for file in dist/*.zip; do unzip -t "$file" >/dev/null; done
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${VERSION}" \
+            "dist/com_decaronotifications_${VERSION}.zip" \
+            "dist/pkg_decaronotifications_${VERSION}.zip" \
+            "dist/SHA256SUMS.txt" \
+            --title "Notifications by xdecaro ${VERSION}" \
+            --notes "Notifications ${VERSION}: persistent internal notification center, recipient preferences, read/unread/archive state and optional Core 1.2 integration."
+      - name: Publish package checksum
+        run: |
+          export PACKAGE_SHA="$(sha256sum "dist/pkg_decaronotifications_${VERSION}.zip" | awk '{print $1}')"
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          path = Path('updates/pkg_decaronotifications.xml')
+          text = path.read_text()
+          text = re.sub(r'\n\s*<sha256>[^<]*</sha256>', '', text)
+          text = text.replace('    <targetplatform', f'    <sha256>{os.environ["PACKAGE_SHA"]}</sha256>\n    <targetplatform', 1)
+          path.write_text(text)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updates/pkg_decaronotifications.xml
+          git diff --cached --quiet || git commit -m "Publish SHA-256 for Notifications ${VERSION}"
+          git push

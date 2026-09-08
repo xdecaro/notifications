@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="package" method="upgrade">
+  <name>Notifications by xdecaro</name>
+  <packagename>decaronotifications</packagename>
+  <version>0.2.0</version>
+  <creationDate>2026-09</creationDate>
+  <author>Luca De Caro</author>
+  <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
+  <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <description>Notifications by xdecaro Joomla package</description>
+  <files>
+    <file type="component" id="com_decaronotifications">com_decaronotifications.zip</file>
+  </files>
+  <updateservers>
+    <server type="extension" priority="1" name="Notifications by xdecaro">https://raw.githubusercontent.com/xdecaro/notifications/main/updates/pkg_decaronotifications.xml</server>
+  </updateservers>
+</extension>

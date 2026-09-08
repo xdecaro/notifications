@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<updates>
+  <update>
+    <name>Notifications by xdecaro</name>
+    <description>Shared notification center for the xdecaro Joomla ecosystem.</description>
+    <element>pkg_decaronotifications</element>
+    <type>package</type>
+    <client>site</client>
+    <version>0.2.0</version>
+    <downloads>
+      <downloadurl type="full" format="zip">https://github.com/xdecaro/notifications/releases/download/v0.2.0/pkg_decaronotifications_0.2.0.zip</downloadurl>
+    </downloads>
+    <tags><tag>stable</tag></tags>
+    <maintainer>Luca De Caro</maintainer>
+    <maintainerurl>https://github.com/xdecaro/notifications</maintainerurl>
+    <targetplatform name="joomla" version="((4|5|6)\.[0-9]+)" />
+    <php_minimum>7.4.0</php_minimum>
+  </update>
+</updates>
