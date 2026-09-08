@@ -1,0 +1,81 @@
+name: Release Notifications package
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - VERSION
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+      - name: Read version
+        run: echo "VERSION=$(tr -d '\r\n' < VERSION)" >> "$GITHUB_ENV"
+      - name: Refuse existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Release v${VERSION} already exists. Bump VERSION before publishing changed files."
+            exit 1
+          fi
+      - name: Validate sources
+        run: |
+          find component tests -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/recipient-reference-smoke.php
+          php tests/core-integration-smoke.php
+          python3 - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          v = pathlib.Path('VERSION').read_text().strip()
+          for p, kind in [('component/xdecaronotifications.xml','extension'),('package/pkg_xdecaronotifications.xml','extension'),('updates/pkg_xdecaronotifications.xml','updates')]:
+              root = ET.parse(p).getroot()
+              node = root.find('version') if kind == 'extension' else root.find('./update/version')
+              assert node is not None and node.text == v, f'{p}: version mismatch'
+          PY
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+      - name: Build deterministic packages
+        run: |
+          bash build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/notifications-sums
+          bash build/build.sh
+          diff -u /tmp/notifications-sums dist/SHA256SUMS.txt
+          for file in dist/*.zip; do unzip -t "$file" >/dev/null; done
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${VERSION}" \
+            "dist/com_xdecaronotifications_${VERSION}.zip" \
+            "dist/pkg_xdecaronotifications_${VERSION}.zip" \
+            "dist/SHA256SUMS.txt" \
+            --title "Notifications by xdecaro ${VERSION}" \
+            --prerelease \
+            --notes "Notifications ${VERSION} beta: persistent internal notification center, recipient preferences, read/unread/archive state and optional Core 1.2 integration. Runtime Joomla 4/5/6 validation is still required before stable designation."
+      - name: Publish package checksum
+        run: |
+          export PACKAGE_SHA="$(sha256sum "dist/pkg_xdecaronotifications_${VERSION}.zip" | awk '{print $1}')"
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          path = Path('updates/pkg_xdecaronotifications.xml')
+          text = path.read_text()
+          text = re.sub(r'\n\s*<sha256>[^<]*</sha256>', '', text)
+          text = text.replace('    <targetplatform', f'    <sha256>{os.environ["PACKAGE_SHA"]}</sha256>\n    <targetplatform', 1)
+          path.write_text(text)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updates/pkg_xdecaronotifications.xml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Publish SHA-256 for Notifications ${VERSION}"
+          git pull --rebase origin main
+          git push origin HEAD:main

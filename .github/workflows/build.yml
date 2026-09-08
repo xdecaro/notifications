@@ -1,0 +1,80 @@
+name: Build Notifications
+
+on:
+  push:
+    branches: [main, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Validate PHP contracts
+        run: |
+          find component tests -name '*.php' -print0 | xargs -0 -n1 php -l
+          php tests/recipient-reference-smoke.php
+          php tests/core-integration-smoke.php
+      - name: Validate XML and versions
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libxml2-utils
+          find component package updates -name '*.xml' -print0 | xargs -0 -n1 xmllint --noout
+          python3 - <<'PY'
+          import pathlib, xml.etree.ElementTree as ET
+          version = pathlib.Path('VERSION').read_text().strip()
+          checks = [
+              ('component/xdecaronotifications.xml', 'extension'),
+              ('package/pkg_xdecaronotifications.xml', 'extension'),
+              ('updates/pkg_xdecaronotifications.xml', 'updates'),
+          ]
+          for path, kind in checks:
+              root = ET.parse(path).getroot()
+              node = root.find('version') if kind == 'extension' else root.find('./update/version')
+              assert node is not None and node.text == version, f'{path}: version mismatch'
+          PY
+      - name: Guard identity, SQL and product boundaries
+        run: |
+          if grep -RniE 'com_decaronotifications|COM_DECARONOTIFICATIONS|Decaronotifications|#__decaronotifications_|pkg_decaronotifications' component package updates README.md CHANGELOG.md tests build; then
+            echo 'Legacy Notifications identity remains.' >&2
+            exit 1
+          fi
+          ! grep -RniE 'DROP[[:space:]]+TABLE|TRUNCATE[[:space:]]+TABLE' component/admin/sql
+          grep -Rni '#__xdecaronotifications_' component/admin/sql >/dev/null
+          ! grep -RniE '#__(xdecaro)?(forms|courses|competitions|documents|membership|finance|protocol|people|organizations|resources|inventory)_' component --include='*.php' --include='*.sql'
+          ! grep -RniE 'var_dump\(|print_r\(' component --include='*.php'
+      - name: Deterministic build A
+        run: |
+          bash build/build.sh
+          cp dist/SHA256SUMS.txt /tmp/notifications-sums
+      - name: Deterministic build B and package layout
+        run: |
+          bash build/build.sh
+          diff -u /tmp/notifications-sums dist/SHA256SUMS.txt
+          for file in dist/*.zip; do unzip -t "$file" >/dev/null; done
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          version = Path('VERSION').read_text().strip()
+          component = Path(f'dist/com_xdecaronotifications_{version}.zip')
+          package = Path(f'dist/pkg_xdecaronotifications_{version}.zip')
+          with ZipFile(component) as z:
+              names = set(z.namelist())
+              required = {'xdecaronotifications.xml','admin/services/provider.php','admin/sql/install.mysql.utf8mb4.sql','site/src/Controller/DisplayController.php','site/tmpl/notifications/default.php'}
+              assert required.issubset(names), 'Component ZIP is missing required files'
+          with ZipFile(package) as z:
+              assert set(z.namelist()) == {'pkg_xdecaronotifications.xml','com_xdecaronotifications.zip'}, 'Package ZIP layout is invalid'
+          PY
+      - uses: actions/upload-artifact@v4
+        if: matrix.php == '8.3'
+        with:
+          name: notifications-${{ github.sha }}
+          path: dist/

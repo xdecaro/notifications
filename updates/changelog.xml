@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelogs>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
+    <version>0.2.0</version>
+    <addition>
+      <item>Persistent internal notification center with recipients and preferences.</item>
+      <item>Read/unread/archive state, scheduling and expiry visibility.</item>
+      <item>Optional Core 1.2 integration and generic entity references.</item>
+      <item>Deterministic Joomla package build and update channel.</item>
+    </addition>
+  </changelog>
+</changelogs>
