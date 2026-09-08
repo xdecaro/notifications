@@ -4,11 +4,16 @@ namespace Xdecaro\Component\Decaronotifications\Administrator\View\Dashboard;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Xdecaro\Core\Asset\AssetService;
 
 final class HtmlView extends BaseHtmlView
 {
     public function display($tpl = null): void
     {
+        if (class_exists(AssetService::class)) {
+            (new AssetService())->useComponents($this->getDocument()->getWebAssetManager());
+        }
+
         parent::display($tpl);
     }
 }
