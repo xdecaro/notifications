@@ -1,0 +1,1 @@
+-- Notifications 1.0.1: Core capability-registry integration only; no database schema changes.
