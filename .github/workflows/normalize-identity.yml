@@ -47,3 +47,5 @@ jobs:
           git add -A
           git commit -m 'Normalize Notifications to xdecaro identity'
           git push origin HEAD:main
+
+# One-shot normalization workflow; remove after successful migration.
