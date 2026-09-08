@@ -1,5 +1,5 @@
 <?php
-namespace Xdecaro\Component\Notifications\Administrator\View\Dashboard;
+namespace Xdecaro\Component\Notifications\Administrator\View\Notifications;
 
 defined('_JEXEC') or die;
 
@@ -11,21 +11,25 @@ use Xdecaro\Core\Asset\AssetService;
 final class HtmlView extends BaseHtmlView
 {
     /** @var array */
-    public $stats = [];
+    public $items = [];
 
-    /** @var array */
-    public $recent = [];
+    /** @var mixed */
+    public $pagination;
+
+    /** @var mixed */
+    public $state;
 
     public function display($tpl = null): void
     {
-        $this->stats  = (array) $this->get('Stats');
-        $this->recent = (array) $this->get('Recent');
+        $this->items      = $this->get('Items');
+        $this->pagination = $this->get('Pagination');
+        $this->state      = $this->get('State');
 
         if (class_exists(AssetService::class)) {
             (new AssetService())->useComponents($this->getDocument()->getWebAssetManager());
         }
 
-        ToolbarHelper::title(Text::_('COM_XDECARONOTIFICATIONS_DASHBOARD'));
+        ToolbarHelper::title(Text::_('COM_XDECARONOTIFICATIONS_NOTIFICATIONS'));
 
         parent::display($tpl);
     }
