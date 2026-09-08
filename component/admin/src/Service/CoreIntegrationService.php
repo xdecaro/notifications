@@ -1,5 +1,5 @@
 <?php
-namespace Xdecaro\Component\Decaronotifications\Administrator\Service;
+namespace Xdecaro\Component\Notifications\Administrator\Service;
 
 defined('_JEXEC') or die;
 
@@ -21,9 +21,9 @@ final class CoreIntegrationService
         }
 
         return [
-            new Capability('com_decaronotifications', 'notifications.publish', '1'),
-            new Capability('com_decaronotifications', 'notifications.preferences', '1'),
-            new Capability('com_decaronotifications', 'notifications.delivery_status', '1'),
+            new Capability('com_xdecaronotifications', 'notifications.publish', '1'),
+            new Capability('com_xdecaronotifications', 'notifications.preferences', '1'),
+            new Capability('com_xdecaronotifications', 'notifications.delivery_status', '1'),
         ];
     }
 
@@ -31,7 +31,7 @@ final class CoreIntegrationService
     public function notificationReference($id): ?EntityReference
     {
         return $this->isAvailable()
-            ? new EntityReference('com_decaronotifications', 'notification', $id)
+            ? new EntityReference('com_xdecaronotifications', 'notification', $id)
             : null;
     }
 }
