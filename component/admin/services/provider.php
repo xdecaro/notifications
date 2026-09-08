@@ -21,6 +21,29 @@ return new class implements ServiceProviderInterface {
 
         $container->share(CoreIntegrationService::class, static fn (): CoreIntegrationService => new CoreIntegrationService());
         $container->share(
+            PreferenceService::class,
+            static fn (Container $container): PreferenceService => new PreferenceService(
+                $container->get(DatabaseInterface::class)
+            )
+        );
+        $container->share(
+            ChannelRegistry::class,
+            static function (): ChannelRegistry {
+                $registry = new ChannelRegistry();
+                $registry->register(new InAppChannel());
+
+                return $registry;
+            }
+        );
+        $container->share(
+            DeliveryService::class,
+            static fn (Container $container): DeliveryService => new DeliveryService(
+                $container->get(DatabaseInterface::class),
+                $container->get(PreferenceService::class),
+                $container->get(ChannelRegistry::class)
+            )
+        );
+        $container->share(
             NotificationService::class,
             static fn (Container $container): NotificationService => new NotificationService(
                 $container->get(DatabaseInterface::class)
@@ -35,6 +58,9 @@ return new class implements ServiceProviderInterface {
                     $container->get(MVCFactoryInterface::class)
                 );
                 $component->setNotificationService($container->get(NotificationService::class));
+                $component->setPreferenceService($container->get(PreferenceService::class));
+                $component->setDeliveryService($container->get(DeliveryService::class));
+                $component->setChannelRegistry($container->get(ChannelRegistry::class));
 
                 return $component;
             }
