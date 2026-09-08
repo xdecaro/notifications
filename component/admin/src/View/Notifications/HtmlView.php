@@ -1,5 +1,5 @@
 <?php
-namespace Xdecaro\Component\Decaronotifications\Administrator\View\Dashboard;
+namespace Xdecaro\Component\Decaronotifications\Administrator\View\Notifications;
 
 defined('_JEXEC') or die;
 
@@ -10,21 +10,15 @@ use Xdecaro\Core\Asset\AssetService;
 
 final class HtmlView extends BaseHtmlView
 {
-    public array $stats = [];
-    public array $recent = [];
+    public array $items = [];
 
     public function display($tpl = null): void
     {
         if (class_exists(AssetService::class)) {
             (new AssetService())->useComponents($this->getDocument()->getWebAssetManager());
         }
-
-        $model = $this->getModel();
-        $this->stats = $model->getStats();
-        $this->recent = $model->getRecent();
-
-        ToolbarHelper::title(Text::_('COM_DECARONOTIFICATIONS_DASHBOARD'), 'bell');
-        ToolbarHelper::preferences('com_decaronotifications');
+        $this->items = $this->getModel()->getItems();
+        ToolbarHelper::title(Text::_('COM_DECARONOTIFICATIONS_NOTIFICATIONS'), 'bell');
         parent::display($tpl);
     }
 }
