@@ -4,6 +4,7 @@ namespace Xdecaro\Component\Notifications\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Access\Exception\NotAllowed;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
@@ -29,7 +30,11 @@ final class DeliveryController extends BaseController
             throw new RuntimeException('Notifications component service is unavailable.');
         }
 
-        $stats = $component->getDeliveryService()->processPending(50, 5);
+        $params      = ComponentHelper::getParams('com_xdecaronotifications');
+        $batch       = max(1, min(100, (int) $params->get('worker_batch', 25)));
+        $maxAttempts = max(1, min(50, (int) $params->get('max_attempts', 5)));
+        $stats       = $component->getDeliveryService()->processPending($batch, $maxAttempts);
+
         $message = Text::sprintf(
             'COM_XDECARONOTIFICATIONS_QUEUE_RESULT',
             $stats['processed'],
