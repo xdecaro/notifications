@@ -2,7 +2,16 @@
 
 Notifications is the shared notification center for the xdecaro Joomla ecosystem.
 
-It owns notification persistence, recipients, preferences, read/unread state, channels, delivery attempts, priorities and history. It may consume normalized cross-product events, but source-domain business rules remain in the originating component.
+## Technical identity
+
+- Component: `com_xdecaronotifications`
+- PHP namespace: `Xdecaro\Component\Notifications`
+- Reserved package identity: `pkg_xdecaronotifications`
+- Reserved database namespace: `#__xdecaronotifications_*`
+
+The package and database identifiers are reserved for future implementation; they must not be treated as shipped until their manifests/schema actually exist.
+
+Notifications owns notification persistence, recipients, preferences, read/unread state, channels, delivery attempts, priorities and history. It may consume normalized cross-product events, but source-domain business rules remain in the originating component.
 
 Initial Core integration targets:
 
@@ -17,4 +26,4 @@ Initial capabilities:
 - `notifications.preferences`
 - `notifications.delivery_status`
 
-Target Joomla 4, 5 and 6 where technically possible.
+Target Joomla 4, 5 and 6 only where runtime compatibility is actually verified.
