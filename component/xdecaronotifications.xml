@@ -6,18 +6,36 @@
   <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <description>COM_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
   <namespace path="src">Xdecaro\Component\Notifications</namespace>
+
   <administration>
     <menu view="dashboard">COM_XDECARONOTIFICATIONS</menu>
+    <submenu>
+      <menu view="dashboard">COM_XDECARONOTIFICATIONS_DASHBOARD</menu>
+      <menu view="notifications">COM_XDECARONOTIFICATIONS_NOTIFICATIONS</menu>
+    </submenu>
     <files folder="admin">
       <filename>access.xml</filename>
       <filename>config.xml</filename>
       <folder>language</folder>
       <folder>services</folder>
+      <folder>sql</folder>
       <folder>src</folder>
       <folder>tmpl</folder>
     </files>
   </administration>
+
+  <install>
+    <sql>
+      <file driver="mysql" charset="utf8mb4">sql/install.mysql.utf8mb4.sql</file>
+    </sql>
+  </install>
+
+  <update>
+    <schemas>
+      <schemapath type="mysql">sql/updates/mysql</schemapath>
+    </schemas>
+  </update>
 </extension>
