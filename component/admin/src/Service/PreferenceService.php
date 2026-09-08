@@ -115,6 +115,7 @@ final class PreferenceService
         $recipientId   = $this->validateIdentifier($recipientId, 'recipient_id');
         $category      = $this->normalizeCategory($category);
         $channel       = $this->validateChannel($channel);
+        $wildcard      = '*';
 
         $query = $this->db->getQuery(true)
             ->select([
@@ -131,7 +132,7 @@ final class PreferenceService
             ->bind(':recipient_id', $recipientId)
             ->bind(':channel', $channel)
             ->bind(':exact_category', $category)
-            ->bind(':wildcard_category', $wildcard = '*')
+            ->bind(':wildcard_category', $wildcard)
             ->bind(':order_category', $category);
 
         $row = $this->db->setQuery($query, 0, 1)->loadAssoc();
