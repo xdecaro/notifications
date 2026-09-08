@@ -6,11 +6,13 @@ defined('_JEXEC') or die;
 use InvalidArgumentException;
 use Joomla\CMS\Factory;
 use Joomla\Database\DatabaseInterface;
+use Joomla\Database\ParameterType;
 use RuntimeException;
 
 final class NotificationService
 {
     private const PRIORITIES = ['low', 'normal', 'high', 'critical'];
+    private const STATES = ['unread', 'read', 'archived'];
 
     /** @var DatabaseInterface */
     private $db;
@@ -153,7 +155,7 @@ final class NotificationService
             ->where($this->db->quoteName('state') . ' = :unread')
             ->bind(':state', $state)
             ->bind(':read_at', $readAt)
-            ->bind(':id', $id)
+            ->bind(':id', $id, ParameterType::INTEGER)
             ->bind(':unread', $unread);
 
         $this->db->setQuery($query)->execute();
@@ -174,7 +176,7 @@ final class NotificationService
             ->where($this->db->quoteName('id') . ' = :id')
             ->bind(':state', $state)
             ->bind(':archived_at', $archivedAt)
-            ->bind(':id', $id);
+            ->bind(':id', $id, ParameterType::INTEGER);
 
         $this->db->setQuery($query)->execute();
     }
@@ -201,6 +203,157 @@ final class NotificationService
         return (int) $this->db->setQuery($query)->loadResult();
     }
 
+    /**
+     * Read notifications for one recipient without exposing private tables.
+     * Authorization is intentionally the caller's responsibility: matching a
+     * recipient reference is not proof that the current user owns that identity.
+     *
+     * Options: state (string|array), category, priority, include_expired,
+     * limit (1..100), offset (>=0).
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function getForRecipient(string $recipientType, string $recipientId, array $options = []): array
+    {
+        $recipientType = $this->validateToken($recipientType, 32, 'recipient_type');
+        $recipientId   = $this->validateIdentifier($recipientId, 'recipient_id');
+        $states        = $this->normalizeStates($options['state'] ?? ['unread', 'read']);
+        $limit         = max(1, min(100, (int) ($options['limit'] ?? 25)));
+        $offset        = max(0, (int) ($options['offset'] ?? 0));
+        $now           = Factory::getDate()->toSql();
+
+        $query = $this->db->getQuery(true)
+            ->select([
+                $this->db->quoteName('id'),
+                $this->db->quoteName('external_key'),
+                $this->db->quoteName('source_component'),
+                $this->db->quoteName('source_entity'),
+                $this->db->quoteName('source_id'),
+                $this->db->quoteName('recipient_type'),
+                $this->db->quoteName('recipient_id'),
+                $this->db->quoteName('category'),
+                $this->db->quoteName('priority'),
+                $this->db->quoteName('title'),
+                $this->db->quoteName('message'),
+                $this->db->quoteName('action_url'),
+                $this->db->quoteName('payload'),
+                $this->db->quoteName('state'),
+                $this->db->quoteName('created'),
+                $this->db->quoteName('read_at'),
+                $this->db->quoteName('archived_at'),
+                $this->db->quoteName('expires_at'),
+            ])
+            ->from($this->db->quoteName('#__xdecaronotifications_items'))
+            ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
+            ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
+            ->where($this->db->quoteName('state') . ' IN (' . implode(',', array_map([$this->db, 'quote'], $states)) . ')')
+            ->bind(':recipient_type', $recipientType)
+            ->bind(':recipient_id', $recipientId);
+
+        if (empty($options['include_expired'])) {
+            $query->where('(' . $this->db->quoteName('expires_at') . ' IS NULL OR ' . $this->db->quoteName('expires_at') . ' >= :now)')
+                ->bind(':now', $now);
+        }
+
+        if (isset($options['category']) && trim((string) $options['category']) !== '') {
+            $category = $this->validateToken((string) $options['category'], 64, 'category');
+            $query->where($this->db->quoteName('category') . ' = :category')
+                ->bind(':category', $category);
+        }
+
+        if (isset($options['priority']) && trim((string) $options['priority']) !== '') {
+            $priority = strtolower(trim((string) $options['priority']));
+            if (!in_array($priority, self::PRIORITIES, true)) {
+                throw new InvalidArgumentException('Invalid notification priority.');
+            }
+            $query->where($this->db->quoteName('priority') . ' = :priority')
+                ->bind(':priority', $priority);
+        }
+
+        $query->order($this->db->quoteName('created') . ' DESC, ' . $this->db->quoteName('id') . ' DESC');
+        $rows = (array) $this->db->setQuery($query, $offset, $limit)->loadAssocList();
+
+        foreach ($rows as &$row) {
+            $row['id'] = (int) $row['id'];
+            $row['payload'] = $this->decodePayload($row['payload'] ?? null);
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    /**
+     * Mark one notification read only when it belongs to the supplied recipient.
+     * The caller must still authorize access to that recipient identity.
+     */
+    public function markReadForRecipient(int $id, string $recipientType, string $recipientId): bool
+    {
+        if ($id < 1) {
+            throw new InvalidArgumentException('Invalid notification ID.');
+        }
+
+        $recipientType = $this->validateToken($recipientType, 32, 'recipient_type');
+        $recipientId   = $this->validateIdentifier($recipientId, 'recipient_id');
+        $readAt        = Factory::getDate()->toSql();
+        $read          = 'read';
+        $unread        = 'unread';
+
+        $query = $this->db->getQuery(true)
+            ->update($this->db->quoteName('#__xdecaronotifications_items'))
+            ->set($this->db->quoteName('state') . ' = :read_state')
+            ->set($this->db->quoteName('read_at') . ' = :read_at')
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
+            ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
+            ->where($this->db->quoteName('state') . ' = :unread_state')
+            ->bind(':read_state', $read)
+            ->bind(':read_at', $readAt)
+            ->bind(':id', $id, ParameterType::INTEGER)
+            ->bind(':recipient_type', $recipientType)
+            ->bind(':recipient_id', $recipientId)
+            ->bind(':unread_state', $unread);
+
+        $this->db->setQuery($query)->execute();
+
+        return $this->db->getAffectedRows() > 0;
+    }
+
+    /**
+     * Archive one notification only when it belongs to the supplied recipient.
+     * The caller must still authorize access to that recipient identity.
+     */
+    public function archiveForRecipient(int $id, string $recipientType, string $recipientId): bool
+    {
+        if ($id < 1) {
+            throw new InvalidArgumentException('Invalid notification ID.');
+        }
+
+        $recipientType = $this->validateToken($recipientType, 32, 'recipient_type');
+        $recipientId   = $this->validateIdentifier($recipientId, 'recipient_id');
+        $archivedAt    = Factory::getDate()->toSql();
+        $archived      = 'archived';
+        $notArchived   = 'archived';
+
+        $query = $this->db->getQuery(true)
+            ->update($this->db->quoteName('#__xdecaronotifications_items'))
+            ->set($this->db->quoteName('state') . ' = :archived_state')
+            ->set($this->db->quoteName('archived_at') . ' = :archived_at')
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
+            ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
+            ->where($this->db->quoteName('state') . ' <> :not_archived')
+            ->bind(':archived_state', $archived)
+            ->bind(':archived_at', $archivedAt)
+            ->bind(':id', $id, ParameterType::INTEGER)
+            ->bind(':recipient_type', $recipientType)
+            ->bind(':recipient_id', $recipientId)
+            ->bind(':not_archived', $notArchived);
+
+        $this->db->setQuery($query)->execute();
+
+        return $this->db->getAffectedRows() > 0;
+    }
+
     private function findByExternalKey(string $sourceComponent, string $externalKey): ?int
     {
         $query = $this->db->getQuery(true)
@@ -214,6 +367,40 @@ final class NotificationService
         $value = $this->db->setQuery($query)->loadResult();
 
         return $value === null ? null : (int) $value;
+    }
+
+    /** @return array<int,string> */
+    private function normalizeStates($value): array
+    {
+        $states = is_array($value) ? $value : [$value];
+        $result = [];
+
+        foreach ($states as $state) {
+            $state = strtolower(trim((string) $state));
+            if (!in_array($state, self::STATES, true)) {
+                throw new InvalidArgumentException('Invalid notification state.');
+            }
+            if (!in_array($state, $result, true)) {
+                $result[] = $state;
+            }
+        }
+
+        if ($result === []) {
+            throw new InvalidArgumentException('At least one notification state is required.');
+        }
+
+        return $result;
+    }
+
+    /** @return array<string,mixed> */
+    private function decodePayload($payload): array
+    {
+        if ($payload === null || $payload === '') {
+            return [];
+        }
+
+        $decoded = json_decode((string) $payload, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     private function validateToken(string $value, int $maxLength, string $field): string
