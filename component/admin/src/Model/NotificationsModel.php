@@ -42,7 +42,7 @@ final class NotificationsModel extends ListModel
                 'n.title', 'n.message', 'n.action_url', 'n.state', 'n.created',
                 'n.read_at', 'n.archived_at', 'n.expires_at',
             ])
-            ->from($db->quoteName('#__xdecaro_notifications', 'n'));
+            ->from($db->quoteName('#__xdecaronotifications_items', 'n'));
 
         $search = trim((string) $this->getState('filter.search'));
         if ($search !== '') {
