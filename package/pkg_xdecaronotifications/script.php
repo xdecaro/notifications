@@ -9,7 +9,9 @@ final class pkg_xdecaronotificationsInstallerScript
 {
     public function postflight($type, $parent): void
     {
-        if (!in_array((string) $type, ['install', 'update', 'discover_install'], true)) {
+        // Enable bundled plugins only on first installation/discovery. Updates
+        // must preserve an administrator's explicit enabled/disabled choices.
+        if (!in_array((string) $type, ['install', 'discover_install'], true)) {
             return;
         }
 
