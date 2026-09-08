@@ -1,41 +1,37 @@
 # Notifications by xdecaro
 
-Notifications is the shared notification center for the xdecaro Joomla ecosystem.
+Notifications is the shared automatic notification center for the xdecaro Joomla ecosystem.
 
-## Technical identity
+## Stable 1.0 scope
 
-- Component: `com_xdecaronotifications`
+Notifications owns notification persistence, recipients, read/unread state, priorities, expiry, recipient preferences, delivery queue, delivery attempts, retry state and automatic channel dispatch. Source-domain rules remain in the originating product.
+
+Technical identity:
+
+- package: `pkg_xdecaronotifications`
+- component: `com_xdecaronotifications`
+- Scheduled Tasks plugin: `plg_task_xdecaronotifications`
+- email channel plugin: `plg_xdecaronotifications_email`
 - PHP namespace: `Xdecaro\Component\Notifications`
-- Reserved package identity: `pkg_xdecaronotifications`
-- Database namespace: `#__xdecaronotifications_*`
-- Notification table: `#__xdecaronotifications_items`
-- Preference table: `#__xdecaronotifications_preferences`
-- Delivery table: `#__xdecaronotifications_deliveries`
-- Attempt history: `#__xdecaronotifications_delivery_attempts`
+- database namespace: `#__xdecaronotifications_*`
 
-Source-domain business rules remain in the originating component. Notifications owns the resulting notification record, recipient preferences and delivery lifecycle.
+Install `pkg_xdecaronotifications_<version>.zip` for the complete supported product. The package enables its included task and email plugins only on first install/discovery; later updates preserve the administrator's enabled/disabled choices. The package deliberately does not create schedules on the administrator's behalf.
 
-## Core integration
+## Public capabilities
 
-Core remains optional. Notifications 0.3.0 supports:
-
-- `Xdecaro\Core\Integration\EntityReference`
-- `Xdecaro\Core\Integration\Capability`
-- `Xdecaro\Core\Integration\IntegrationEvent`
-- shared Core UI assets when available
-
-Public capabilities:
+Core remains optional. When Xdecaro Core is available Notifications advertises:
 
 - `notifications.publish`
+- `notifications.query`
 - `notifications.state`
 - `notifications.unread_count`
 - `notifications.preferences`
 - `notifications.delivery_status`
 - `notifications.delivery_channels`
 
-## Public component API
+Other products must boot `com_xdecaronotifications` and use its public services. They must never query Notifications tables directly.
 
-Other xdecaro products must not query Notifications tables directly. Boot the component through Joomla:
+## Publish and queue
 
 ```php
 use Joomla\CMS\Factory;
@@ -44,31 +40,49 @@ use Xdecaro\Component\Notifications\Administrator\Extension\NotificationsCompone
 $component = Factory::getApplication()->bootComponent('com_xdecaronotifications');
 
 if ($component instanceof NotificationsComponent) {
-    $notificationId = $component->getNotificationService()->create([
-        'external_key'     => 'document-expiry:300:2026-09-30',
+    $id = $component->getNotificationService()->create([
+        'external_key' => 'document-expiry:300:2026-09-30',
         'source_component' => 'com_xdecarodocuments',
-        'source_entity'    => 'document',
-        'source_id'        => '300',
-        'recipient_type'   => 'user',
-        'recipient_id'     => '42',
-        'category'         => 'documents',
-        'priority'         => 'high',
-        'title'            => 'Document expiring',
-        'message'          => 'A document requires attention.',
+        'source_entity' => 'document',
+        'source_id' => '300',
+        'recipient_type' => 'user',
+        'recipient_id' => '42',
+        'category' => 'documents',
+        'priority' => 'high',
+        'title' => 'Document expiring',
+        'message' => 'A document requires attention.',
+        'expires_at' => '2026-10-01 00:00:00',
     ]);
 
-    $component->getDeliveryService()->queueForNotification(
-        $notificationId,
-        ['in_app', 'email']
-    );
+    $component->getDeliveryService()->queueForNotification($id, ['in_app', 'email']);
 }
 ```
 
-`external_key` is idempotent within the source component. Delivery rows are also idempotent per notification/channel.
+`external_key` is idempotent inside the source component. A notification/channel delivery pair is also idempotent.
+
+## Recipient query and state API
+
+Consumers can read and update notifications without querying private tables:
+
+```php
+$notifications = $component->getNotificationService();
+
+$items = $notifications->getForRecipient('user', '42', [
+    'state' => ['unread', 'read'],
+    'limit' => 25,
+]);
+
+$notifications->markReadForRecipient($notificationId, 'user', '42');
+$notifications->archiveForRecipient($notificationId, 'user', '42');
+```
+
+Queries exclude expired notifications by default and support validated state, category and priority filters, pagination, and optional inclusion of expired records. Recipient-scoped state methods do not mutate a record belonging to another recipient.
+
+**Authorization remains the caller's responsibility.** A `recipient_type` / `recipient_id` match is an integration reference, not proof that the current Joomla user is authorized to act for that person, organization or other identity.
 
 ## Preferences
 
-Preferences are resolved by recipient, category and channel. A category-specific rule takes precedence over the `*` wildcard rule.
+Rules are resolved by recipient, category and channel. A category-specific rule wins over the `*` recipient-wide default.
 
 ```php
 $preferences = $component->getPreferenceService();
@@ -76,46 +90,54 @@ $preferences->setPreference('user', '42', '*', 'email', true);
 $preferences->setPreference('user', '42', 'marketing', 'email', false);
 ```
 
-Removing a rule restores default behavior rather than creating a second implicit state.
+Removing a rule restores default behavior.
 
-## Delivery adapters
+## Delivery channels
 
-`in_app` is included natively. Email, PEC, push and future channels must be optional adapters implementing `DeliveryChannelInterface` and registered through:
+`in_app` is native. Optional plugins in the `xdecaronotifications` group can implement `DeliveryChannelInterface` and register themselves through the `onXdecaroNotificationsRegisterChannels` event. A failing optional plugin is isolated by channel discovery and does not make the component unavailable.
 
-```php
-$component->registerDeliveryChannel($channelAdapter);
-```
+The included `email` channel uses Joomla's configured mail transport. Recipient resolution is explicit:
 
-Adapters return `DeliveryResult` and must not write Notifications tables. `DeliveryService` owns queue state, atomic claims, attempts, retry scheduling, permanent failures and delivery status.
+1. `context['email']` when it is a valid address;
+2. for `recipient_type=user`, the email of the Joomla user identified by `recipient_id`;
+3. otherwise the delivery is a permanent `recipient_email_missing` failure.
 
-Missing adapters do not break Notifications; queued deliveries remain pending and are retried later.
+Transport errors are retryable. Notifications email is for automatic alerts only. Official/manual email, templates requiring business workflow, PEC and protocolled communications belong to **Communications**.
+
+## Scheduled Tasks
+
+The included task plugin advertises two Joomla Scheduler routines:
+
+- `Notifications: process delivery queue` (`xdecaronotifications.queue`)
+- `Notifications: maintenance` (`xdecaronotifications.maintenance`)
+
+Create schedules from **System → Scheduled Tasks** according to the site's operational needs. The queue routine uses the component batch and retry settings unless overridden in the task. Maintenance can archive Notifications records whose own `expires_at` has passed and purge old delivery-attempt history.
+
+Notifications does not scan Documents, Membership, Finance or other private product tables for expiries. Each source component owns its business rule and publishes the resulting notification.
 
 ## Administrator UI
 
-0.3.0 provides:
+The component provides:
 
-- dashboard notification and delivery-health counters;
-- notification center with search/filter/pagination;
-- Deliveries screen with channel/state filters, attempts and last error;
-- secure manual queue processing;
-- Preferences screen with recipient/category/channel rules;
-- mark-read and archive actions;
-- Joomla ACL and CSRF checks on state-changing actions;
-- responsive Core shared UI when available, with Joomla fallback when Core is absent.
+- Dashboard with notification and delivery-health counters;
+- Notifications center with search, filters, pagination, mark-read and archive;
+- Deliveries with queue state, attempts, channel and last error;
+- Preferences with recipient/category/channel rules;
+- Information with Product + Environment, Included extensions + Updates, Connected components and Diagnostics;
+- component settings for queue limits and maintenance retention.
 
-## Current boundaries
+UI uses Xdecaro Core shared assets when available and safe Joomla fallback otherwise.
 
-Not yet implemented:
+## Boundaries
 
-- concrete email/PEC/push adapters;
-- automatic adapter discovery through Joomla plugins;
-- Joomla Scheduled Tasks worker registration;
-- digest notifications;
-- browser push subscription management;
-- scheduled expiry scanning.
+Stable 1.0 intentionally does not duplicate other products:
 
-Communications remains the owner of official/manual communications and PEC workflows. Notifications must not become a second Communications component.
+- PEC, official/manual communications and communication templates: **Communications**;
+- source-domain expiry scanning: the source component;
+- People/Organizations recipient identity and authorization: their owning providers/application layer;
+- browser push subscriptions: optional future channel/plugin, not hardcoded into the notification core;
+- digest aggregation: optional future policy/service, not required by the delivery core.
 
-## Compatibility
+## Compatibility and release
 
-Target Joomla 4, 5 and 6 where runtime compatibility is verified. CI validates PHP 7.4 and PHP 8.3 syntax/build compatibility. Joomla itself may require a higher PHP version depending on the installed major.
+Target Joomla 4, 5 and 6 where the installed Joomla/PHP combination supports them. CI validates PHP 7.4 and PHP 8.3 syntax/build compatibility and performs clean package installation smoke tests on Joomla 4.4.14, 5.4.8 and 6.1.3. Releases are deterministic and publish component, plugin and package ZIPs plus SHA-256 checksums. The Joomla update channel is `updates/pkg_xdecaronotifications.xml`.

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="task" method="upgrade">
+  <name>PLG_TASK_XDECARONOTIFICATIONS</name>
+  <author>Luca De Caro</author>
+  <creationDate>2026-09</creationDate>
+  <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
+  <version>1.0.0</version>
+  <description>PLG_TASK_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
+  <namespace path="src">Xdecaro\Plugin\Task\Notifications</namespace>
+  <files>
+    <folder plugin="xdecaronotifications">services</folder>
+    <folder>src</folder>
+    <folder>forms</folder>
+    <folder>language</folder>
+  </files>
+</extension>

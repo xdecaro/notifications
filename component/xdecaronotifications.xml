@@ -6,7 +6,7 @@
   <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
-  <version>0.3.0</version>
+  <version>1.0.0</version>
   <description>COM_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
   <namespace path="src">Xdecaro\Component\Notifications</namespace>
 
@@ -17,6 +17,7 @@
       <menu view="notifications">COM_XDECARONOTIFICATIONS_NOTIFICATIONS</menu>
       <menu view="deliveries">COM_XDECARONOTIFICATIONS_DELIVERIES</menu>
       <menu view="preferences">COM_XDECARONOTIFICATIONS_PREFERENCES</menu>
+      <menu view="information">COM_XDECARONOTIFICATIONS_INFORMATION</menu>
     </submenu>
     <files folder="admin">
       <filename>access.xml</filename>
@@ -31,7 +32,7 @@
 
   <install>
     <sql>
-      <file driver="mysql" charset="utf8mb4">sql/install.mysql.utf8mb4.sql</file>
+      <file driver="mysql" charset="utf8">sql/install.mysql.utf8mb4.sql</file>
     </sql>
   </install>
 

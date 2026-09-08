@@ -1,0 +1,92 @@
+name: Notifications Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - VERSION
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: simplexml
+          coverage: none
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Stop if release already exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Release v${{ steps.version.outputs.version }} already exists. Bump VERSION before publishing changed files."
+            exit 1
+          fi
+
+      - name: Build and validate
+        run: bash build/build.sh
+
+      - name: Synchronize Joomla update checksum
+        run: php build/update-feed-checksum.php
+
+      - name: Verify release checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          PACKAGE="dist/pkg_xdecaronotifications_${VERSION}.zip"
+          SHA256="$(sha256sum "$PACKAGE" | awk '{print $1}')"
+          grep -q "<sha256>${SHA256}</sha256>" updates/pkg_xdecaronotifications.xml
+          grep -q "${SHA256}  pkg_xdecaronotifications_${VERSION}.zip" dist/SHA256SUMS.txt
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "v${VERSION}" \
+            "dist/com_xdecaronotifications_${VERSION}.zip" \
+            "dist/plg_task_xdecaronotifications_${VERSION}.zip" \
+            "dist/plg_xdecaronotifications_email_${VERSION}.zip" \
+            "dist/pkg_xdecaronotifications_${VERSION}.zip" \
+            dist/SHA256SUMS.txt \
+            --title "Notifications by xdecaro ${VERSION}" \
+            --notes "Notifications by xdecaro ${VERSION}. Stable notification center with preferences, concurrency-safe delivery queue, scheduled workers, plugin-based delivery channels, automatic Joomla email delivery, diagnostics and optional Core integration."
+
+      - name: Publish update-feed checksum
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add updates/pkg_xdecaronotifications.xml
+          if git diff --cached --quiet; then
+            echo "Update feed checksum already current."
+            exit 0
+          fi
+          git commit -m "Publish SHA-256 for Notifications by xdecaro ${VERSION}"
+          git pull --rebase origin main
+          git push origin HEAD:main

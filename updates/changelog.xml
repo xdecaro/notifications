@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<changelogs>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
+    <version>1.0.0</version>
+    <addition>
+      <item>Stable notification persistence, read/archive state, priorities, expiry and idempotent publishing.</item>
+      <item>Recipient/category/channel preferences with public service APIs.</item>
+      <item>Concurrency-safe delivery queue, retry lifecycle and immutable attempt history.</item>
+      <item>Native in-app channel and automatic plugin-based channel discovery.</item>
+      <item>Joomla Scheduled Tasks worker and maintenance routines.</item>
+      <item>Optional automatic email delivery through the Joomla mail configuration.</item>
+      <item>Standard xdecaro Information page with environment, integrations and diagnostics.</item>
+      <item>Installable package, update server, deterministic release artifacts and SHA-256 verification.</item>
+    </addition>
+  </changelog>
+</changelogs>

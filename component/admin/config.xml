@@ -1,26 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
   <fieldset name="delivery" label="COM_XDECARONOTIFICATIONS_CONFIG_DELIVERY">
-    <field
-      name="worker_batch"
-      type="number"
-      label="COM_XDECARONOTIFICATIONS_CONFIG_WORKER_BATCH"
-      description="COM_XDECARONOTIFICATIONS_CONFIG_WORKER_BATCH_DESC"
-      default="25"
-      min="1"
-      max="100"
-      filter="integer"
-    />
-    <field
-      name="max_attempts"
-      type="number"
-      label="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS"
-      description="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS_DESC"
-      default="5"
-      min="1"
-      max="50"
-      filter="integer"
-    />
+    <field name="worker_batch" type="number" label="COM_XDECARONOTIFICATIONS_CONFIG_WORKER_BATCH" description="COM_XDECARONOTIFICATIONS_CONFIG_WORKER_BATCH_DESC" default="25" min="1" max="100" filter="integer" />
+    <field name="max_attempts" type="number" label="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS" description="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS_DESC" default="5" min="1" max="50" filter="integer" />
+  </fieldset>
+
+  <fieldset name="maintenance" label="COM_XDECARONOTIFICATIONS_CONFIG_MAINTENANCE">
+    <field name="archive_expired" type="radio" label="COM_XDECARONOTIFICATIONS_CONFIG_ARCHIVE_EXPIRED" description="COM_XDECARONOTIFICATIONS_CONFIG_ARCHIVE_EXPIRED_DESC" default="1" layout="joomla.form.field.radio.switcher" filter="integer">
+      <option value="0">JNO</option>
+      <option value="1">JYES</option>
+    </field>
+    <field name="attempt_retention_days" type="number" label="COM_XDECARONOTIFICATIONS_CONFIG_RETENTION_DAYS" description="COM_XDECARONOTIFICATIONS_CONFIG_RETENTION_DAYS_DESC" default="90" min="7" max="3650" filter="integer" />
   </fieldset>
 
   <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL">

@@ -1,0 +1,1 @@
+-- Notifications 1.0.0: no destructive schema changes required.
