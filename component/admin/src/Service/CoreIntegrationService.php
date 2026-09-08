@@ -3,9 +3,10 @@ namespace Xdecaro\Component\Notifications\Administrator\Service;
 
 defined('_JEXEC') or die;
 
-use Xdecaro\Core\Integration\Capability;
-use Xdecaro\Core\Integration\EntityReference;
-use Xdecaro\Core\Integration\IntegrationEvent;
+use xdecaro\Core\Integration\Capability;
+use xdecaro\Core\Integration\CapabilityRegistry;
+use xdecaro\Core\Integration\EntityReference;
+use xdecaro\Core\Integration\IntegrationEvent;
 
 final class CoreIntegrationService
 {
@@ -14,6 +15,11 @@ final class CoreIntegrationService
         return class_exists(Capability::class)
             && class_exists(EntityReference::class)
             && class_exists(IntegrationEvent::class);
+    }
+
+    public function hasCapabilityRegistry(): bool
+    {
+        return class_exists(CapabilityRegistry::class);
     }
 
     /** @return array<int,Capability> */
@@ -32,6 +38,11 @@ final class CoreIntegrationService
             new Capability('com_xdecaronotifications', 'notifications.delivery_status', '1'),
             new Capability('com_xdecaronotifications', 'notifications.delivery_channels', '1'),
         ];
+    }
+
+    public function registerCapabilities(CapabilityRegistry $registry): void
+    {
+        $registry->registerMany($this->getCapabilities());
     }
 
     /** @param int|string $id */

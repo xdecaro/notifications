@@ -3,6 +3,16 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.0.1</version>
+    <change>
+      <item>Uses the canonical lowercase xdecaro\Core namespace for new Core integration code.</item>
+      <item>Registers all Notifications capabilities into Core 1.4 CapabilityRegistry when available.</item>
+      <item>Exposes the Notifications CoreIntegrationService from the booted component while preserving optional-Core fallback.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.0.0</version>
     <addition>
       <item>Stable notification persistence, read/archive state, priorities, expiry and idempotent publishing.</item>

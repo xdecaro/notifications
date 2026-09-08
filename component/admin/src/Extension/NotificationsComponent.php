@@ -6,6 +6,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Extension\MVCComponent;
 use LogicException;
 use Xdecaro\Component\Notifications\Administrator\Service\ChannelRegistry;
+use Xdecaro\Component\Notifications\Administrator\Service\CoreIntegrationService;
 use Xdecaro\Component\Notifications\Administrator\Service\DeliveryChannelInterface;
 use Xdecaro\Component\Notifications\Administrator\Service\DeliveryService;
 use Xdecaro\Component\Notifications\Administrator\Service\MaintenanceService;
@@ -19,12 +20,14 @@ final class NotificationsComponent extends MVCComponent
     /** @var DeliveryService|null */ private $deliveryService;
     /** @var ChannelRegistry|null */ private $channelRegistry;
     /** @var MaintenanceService|null */ private $maintenanceService;
+    /** @var CoreIntegrationService|null */ private $coreIntegrationService;
 
     public function setNotificationService(NotificationService $service): void { $this->notificationService = $service; }
     public function setPreferenceService(PreferenceService $service): void { $this->preferenceService = $service; }
     public function setDeliveryService(DeliveryService $service): void { $this->deliveryService = $service; }
     public function setChannelRegistry(ChannelRegistry $registry): void { $this->channelRegistry = $registry; }
     public function setMaintenanceService(MaintenanceService $service): void { $this->maintenanceService = $service; }
+    public function setCoreIntegrationService(CoreIntegrationService $service): void { $this->coreIntegrationService = $service; }
 
     public function getNotificationService(): NotificationService
     {
@@ -48,6 +51,12 @@ final class NotificationsComponent extends MVCComponent
     {
         if ($this->maintenanceService === null) { throw new LogicException('Notification maintenance service has not been initialized.'); }
         return $this->maintenanceService;
+    }
+
+    public function getCoreIntegrationService(): CoreIntegrationService
+    {
+        if ($this->coreIntegrationService === null) { throw new LogicException('Notifications Core integration service has not been initialized.'); }
+        return $this->coreIntegrationService;
     }
 
     public function registerDeliveryChannel(DeliveryChannelInterface $channel): void { $this->getChannelRegistry()->register($channel); }

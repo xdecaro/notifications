@@ -38,6 +38,7 @@ return new class implements ServiceProviderInterface {
             $component->setDeliveryService($container->get(DeliveryService::class));
             $component->setChannelRegistry($container->get(ChannelRegistry::class));
             $component->setMaintenanceService($container->get(MaintenanceService::class));
+            $component->setCoreIntegrationService($container->get(CoreIntegrationService::class));
             $container->get(ChannelDiscoveryService::class)->discover();
             return $component;
         });

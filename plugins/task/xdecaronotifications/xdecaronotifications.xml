@@ -6,7 +6,7 @@
   <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <description>PLG_TASK_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
   <namespace path="src">Xdecaro\Plugin\Task\Notifications</namespace>
   <files>
