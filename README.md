@@ -15,13 +15,14 @@ Technical identity:
 - PHP namespace: `Xdecaro\Component\Notifications`
 - database namespace: `#__xdecaronotifications_*`
 
-Install `pkg_xdecaronotifications_<version>.zip` for the complete supported product. The package enables its included task and email plugins but deliberately does not create schedules on the administrator's behalf.
+Install `pkg_xdecaronotifications_<version>.zip` for the complete supported product. The package enables its included task and email plugins only on first install/discovery; later updates preserve the administrator's enabled/disabled choices. The package deliberately does not create schedules on the administrator's behalf.
 
 ## Public capabilities
 
 Core remains optional. When Xdecaro Core is available Notifications advertises:
 
 - `notifications.publish`
+- `notifications.query`
 - `notifications.state`
 - `notifications.unread_count`
 - `notifications.preferences`
@@ -58,6 +59,26 @@ if ($component instanceof NotificationsComponent) {
 ```
 
 `external_key` is idempotent inside the source component. A notification/channel delivery pair is also idempotent.
+
+## Recipient query and state API
+
+Consumers can read and update notifications without querying private tables:
+
+```php
+$notifications = $component->getNotificationService();
+
+$items = $notifications->getForRecipient('user', '42', [
+    'state' => ['unread', 'read'],
+    'limit' => 25,
+]);
+
+$notifications->markReadForRecipient($notificationId, 'user', '42');
+$notifications->archiveForRecipient($notificationId, 'user', '42');
+```
+
+Queries exclude expired notifications by default and support validated state, category and priority filters, pagination, and optional inclusion of expired records. Recipient-scoped state methods do not mutate a record belonging to another recipient.
+
+**Authorization remains the caller's responsibility.** A `recipient_type` / `recipient_id` match is an integration reference, not proof that the current Joomla user is authorized to act for that person, organization or other identity.
 
 ## Preferences
 
@@ -113,10 +134,10 @@ Stable 1.0 intentionally does not duplicate other products:
 
 - PEC, official/manual communications and communication templates: **Communications**;
 - source-domain expiry scanning: the source component;
-- People/Organizations recipient identity: their owning providers;
+- People/Organizations recipient identity and authorization: their owning providers/application layer;
 - browser push subscriptions: optional future channel/plugin, not hardcoded into the notification core;
 - digest aggregation: optional future policy/service, not required by the delivery core.
 
 ## Compatibility and release
 
-Target Joomla 4, 5 and 6 where the installed Joomla/PHP combination supports them. CI validates PHP 7.4 and PHP 8.3 syntax/build compatibility. Releases are deterministic and publish component, plugin and package ZIPs plus SHA-256 checksums. The Joomla update channel is `updates/pkg_xdecaronotifications.xml`.
+Target Joomla 4, 5 and 6 where the installed Joomla/PHP combination supports them. CI validates PHP 7.4 and PHP 8.3 syntax/build compatibility and performs clean package installation smoke tests on Joomla 4.4.14, 5.4.8 and 6.1.3. Releases are deterministic and publish component, plugin and package ZIPs plus SHA-256 checksums. The Joomla update channel is `updates/pkg_xdecaronotifications.xml`.
