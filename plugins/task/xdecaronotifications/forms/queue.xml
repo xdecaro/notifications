@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+  <fields name="params">
+    <fieldset name="task_params">
+      <field name="batch" type="number" label="PLG_TASK_XDECARONOTIFICATIONS_BATCH_LABEL" description="PLG_TASK_XDECARONOTIFICATIONS_BATCH_DESC" default="25" min="1" max="100" step="1" filter="int" />
+      <field name="max_attempts" type="number" label="PLG_TASK_XDECARONOTIFICATIONS_MAX_ATTEMPTS_LABEL" description="PLG_TASK_XDECARONOTIFICATIONS_MAX_ATTEMPTS_DESC" default="5" min="1" max="50" step="1" filter="int" />
+    </fieldset>
+  </fields>
+</form>

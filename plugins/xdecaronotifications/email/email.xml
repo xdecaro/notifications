@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="xdecaronotifications" method="upgrade">
+  <name>PLG_XDECARONOTIFICATIONS_EMAIL</name>
+  <author>Luca De Caro</author>
+  <creationDate>2026-09</creationDate>
+  <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
+  <version>1.0.0</version>
+  <description>PLG_XDECARONOTIFICATIONS_EMAIL_XML_DESCRIPTION</description>
+  <namespace path="src">Xdecaro\Plugin\Notifications\Email</namespace>
+  <files>
+    <folder plugin="email">services</folder>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+</extension>
