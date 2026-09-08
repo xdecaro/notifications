@@ -1,0 +1,40 @@
+name: Notifications CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        php: ['7.4', '8.3']
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: simplexml
+          coverage: none
+
+      - name: Build and validate
+        run: bash build/build.sh
+
+      - name: Preserve checksum
+        if: matrix.php == '8.3'
+        run: cp dist/SHA256SUMS.txt /tmp/SHA256SUMS.first
+
+      - name: Repeat deterministic build
+        if: matrix.php == '8.3'
+        run: |
+          bash build/build.sh
+          diff -u /tmp/SHA256SUMS.first dist/SHA256SUMS.txt
