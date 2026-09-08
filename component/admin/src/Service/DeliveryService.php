@@ -21,30 +21,16 @@ final class DeliveryService
     /** @var ChannelRegistry */
     private $channels;
 
-    public function __construct(
-        DatabaseInterface $db,
-        PreferenceService $preferences,
-        ChannelRegistry $channels
-    ) {
+    public function __construct(DatabaseInterface $db, PreferenceService $preferences, ChannelRegistry $channels)
+    {
         $this->db          = $db;
         $this->preferences = $preferences;
         $this->channels    = $channels;
     }
 
-    /**
-     * Queue requested channels for one persisted notification after applying
-     * recipient preferences. Existing notification/channel rows are reused.
-     *
-     * @param array<int,string> $channels
-     * @param array<string,mixed> $context
-     * @return array<string,int> channel => delivery id
-     */
-    public function queueForNotification(
-        int $notificationId,
-        array $channels,
-        array $context = [],
-        bool $defaultEnabled = true
-    ): array {
+    /** @param array<int,string> $channels @param array<string,mixed> $context @return array<string,int> */
+    public function queueForNotification(int $notificationId, array $channels, array $context = [], bool $defaultEnabled = true): array
+    {
         $notification = $this->getNotification($notificationId);
         $enabled = $this->preferences->filterEnabledChannels(
             (string) $notification['recipient_type'],
@@ -63,21 +49,17 @@ final class DeliveryService
     }
 
     /** @param array<string,mixed> $context */
-    public function queue(
-        int $notificationId,
-        string $channel,
-        array $context = [],
-        $availableAt = null
-    ): int {
+    public function queue(int $notificationId, string $channel, array $context = [], $availableAt = null): int
+    {
         if ($notificationId < 1) {
             throw new InvalidArgumentException('Invalid notification ID.');
         }
 
         $this->getNotification($notificationId);
-        $channel       = $this->validateChannel($channel);
-        $contextJson   = $this->encodeContext($context);
-        $availableSql  = $this->normalizeSqlDate($availableAt) ?: Factory::getDate()->toSql();
-        $now           = Factory::getDate()->toSql();
+        $channel      = $this->validateChannel($channel);
+        $contextJson  = $this->encodeContext($context);
+        $availableSql = $this->normalizeSqlDate($availableAt) ?: Factory::getDate()->toSql();
+        $now          = Factory::getDate()->toSql();
 
         $existing = $this->findDeliveryId($notificationId, $channel);
         if ($existing !== null) {
@@ -118,33 +100,44 @@ final class DeliveryService
         return (int) $this->db->insertid();
     }
 
-    /**
-     * Deliver pending rows using registered adapters. Missing adapters are left
-     * pending so an optional integration can become available later.
-     *
-     * @return array{processed:int,delivered:int,failed:int,missing_adapter:int}
-     */
-    public function processPending(int $limit = 25): array
+    /** @return array{processed:int,delivered:int,failed:int,missing_adapter:int,skipped:int} */
+    public function processPending(int $limit = 25, int $maxAttempts = 5): array
     {
-        $limit = max(1, min(100, $limit));
-        $rows = $this->getPending($limit);
+        $limit       = max(1, min(100, $limit));
+        $maxAttempts = max(1, min(50, $maxAttempts));
+        $rows        = $this->getPendingCandidates($limit);
         $stats = [
             'processed'       => 0,
             'delivered'       => 0,
             'failed'          => 0,
             'missing_adapter' => 0,
+            'skipped'         => 0,
         ];
 
         foreach ($rows as $row) {
+            $deliveryId = (int) $row['id'];
+
+            if ((int) $row['attempts'] >= $maxAttempts) {
+                $this->markExhausted($deliveryId);
+                $stats['failed']++;
+                continue;
+            }
+
+            if (!$this->claim($deliveryId)) {
+                $stats['skipped']++;
+                continue;
+            }
+
             $channel = $this->channels->get((string) $row['channel']);
             if ($channel === null) {
+                $this->releaseClaim($deliveryId, 300, 'Delivery adapter is not registered.');
                 $stats['missing_adapter']++;
                 continue;
             }
 
             $stats['processed']++;
             $notification = $this->getNotification((int) $row['notification_id']);
-            $context = $this->decodeContext($row['context'] ?? null);
+            $context      = $this->decodeContext($row['context'] ?? null);
 
             try {
                 $result = $channel->deliver($notification, $context);
@@ -157,21 +150,36 @@ final class DeliveryService
             }
 
             if ($result->isSuccess()) {
-                $this->recordDelivered(
-                    (int) $row['id'],
+                $this->recordAttempt(
+                    $deliveryId,
                     (string) $row['channel'],
-                    $result->getProviderReference()
+                    'delivered',
+                    $result->getProviderReference(),
+                    null,
+                    null,
+                    null
                 );
                 $stats['delivered']++;
                 continue;
             }
 
-            $this->recordFailure(
-                (int) $row['id'],
+            $retryAfter = $result->getRetryAfterSeconds();
+            if ((int) $row['attempts'] + 1 >= $maxAttempts) {
+                $retryAfter = null;
+            }
+
+            $retryAt = $retryAfter !== null
+                ? Factory::getDate('+' . max(1, $retryAfter) . ' seconds')->toSql()
+                : null;
+
+            $this->recordAttempt(
+                $deliveryId,
                 (string) $row['channel'],
+                'failed',
+                null,
                 (string) $result->getErrorCode(),
                 (string) $result->getErrorMessage(),
-                $result->getRetryAfterSeconds()
+                $retryAt
             );
             $stats['failed']++;
         }
@@ -207,7 +215,7 @@ final class DeliveryService
     }
 
     /** @return array<int,array<string,mixed>> */
-    private function getPending(int $limit): array
+    private function getPendingCandidates(int $limit): array
     {
         $now = Factory::getDate()->toSql();
         $query = $this->db->getQuery(true)
@@ -216,9 +224,10 @@ final class DeliveryService
                 $this->db->quoteName('notification_id'),
                 $this->db->quoteName('channel'),
                 $this->db->quoteName('context'),
+                $this->db->quoteName('attempts'),
             ])
             ->from($this->db->quoteName('#__xdecaronotifications_deliveries'))
-            ->where($this->db->quoteName('state') . ' IN (:pending_state, :retry_state)')
+            ->where('(' . $this->db->quoteName('state') . ' = :pending_state OR ' . $this->db->quoteName('state') . ' = :retry_state)')
             ->where($this->db->quoteName('available_at') . ' <= :now')
             ->order($this->db->quoteName('available_at') . ' ASC, ' . $this->db->quoteName('id') . ' ASC')
             ->bind(':pending_state', $pending = 'pending')
@@ -226,6 +235,69 @@ final class DeliveryService
             ->bind(':now', $now);
 
         return (array) $this->db->setQuery($query, 0, $limit)->loadAssocList();
+    }
+
+    private function claim(int $deliveryId): bool
+    {
+        $now = Factory::getDate()->toSql();
+        $query = $this->db->getQuery(true)
+            ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
+            ->set($this->db->quoteName('state') . ' = :processing_state')
+            ->set($this->db->quoteName('updated') . ' = :updated')
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->where('(' . $this->db->quoteName('state') . ' = :pending_state OR ' . $this->db->quoteName('state') . ' = :retry_state)')
+            ->where($this->db->quoteName('available_at') . ' <= :now')
+            ->bind(':processing_state', $processing = 'processing')
+            ->bind(':updated', $now)
+            ->bind(':id', $deliveryId, ParameterType::INTEGER)
+            ->bind(':pending_state', $pending = 'pending')
+            ->bind(':retry_state', $retry = 'retry')
+            ->bind(':now', $now);
+
+        $this->db->setQuery($query)->execute();
+
+        return (int) $this->db->getAffectedRows() === 1;
+    }
+
+    private function releaseClaim(int $deliveryId, int $delaySeconds, string $reason): void
+    {
+        $available = Factory::getDate('+' . max(1, $delaySeconds) . ' seconds')->toSql();
+        $now       = Factory::getDate()->toSql();
+        $reason    = $this->truncateNullable($reason, 1000);
+
+        $query = $this->db->getQuery(true)
+            ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
+            ->set($this->db->quoteName('state') . ' = :state')
+            ->set($this->db->quoteName('available_at') . ' = :available_at')
+            ->set($this->db->quoteName('updated') . ' = :updated')
+            ->set($this->db->quoteName('last_error') . ' = :last_error')
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->where($this->db->quoteName('state') . ' = :processing')
+            ->bind(':state', $state = 'pending')
+            ->bind(':available_at', $available)
+            ->bind(':updated', $now)
+            ->bind(':last_error', $reason)
+            ->bind(':id', $deliveryId, ParameterType::INTEGER)
+            ->bind(':processing', $processing = 'processing');
+
+        $this->db->setQuery($query)->execute();
+    }
+
+    private function markExhausted(int $deliveryId): void
+    {
+        $now = Factory::getDate()->toSql();
+        $query = $this->db->getQuery(true)
+            ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
+            ->set($this->db->quoteName('state') . ' = :state')
+            ->set($this->db->quoteName('updated') . ' = :updated')
+            ->set($this->db->quoteName('last_error') . ' = :last_error')
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->bind(':state', $state = 'failed')
+            ->bind(':updated', $now)
+            ->bind(':last_error', $error = 'Maximum delivery attempts reached.')
+            ->bind(':id', $deliveryId, ParameterType::INTEGER);
+
+        $this->db->setQuery($query)->execute();
     }
 
     /** @return array<string,mixed> */
@@ -286,34 +358,6 @@ final class DeliveryService
         return $value === null ? null : (int) $value;
     }
 
-    private function recordDelivered(int $deliveryId, string $provider, ?string $reference): void
-    {
-        $this->recordAttempt($deliveryId, $provider, 'delivered', $reference, null, null, null);
-    }
-
-    private function recordFailure(
-        int $deliveryId,
-        string $provider,
-        string $errorCode,
-        string $errorMessage,
-        ?int $retryAfterSeconds
-    ): void {
-        $retryAt = null;
-        if ($retryAfterSeconds !== null) {
-            $retryAt = Factory::getDate('+' . max(1, $retryAfterSeconds) . ' seconds')->toSql();
-        }
-
-        $this->recordAttempt(
-            $deliveryId,
-            $provider,
-            'failed',
-            null,
-            $errorCode,
-            $errorMessage,
-            $retryAt
-        );
-    }
-
     private function recordAttempt(
         int $deliveryId,
         string $provider,
@@ -323,10 +367,11 @@ final class DeliveryService
         ?string $errorMessage,
         ?string $retryAt
     ): void {
-        $now = Factory::getDate()->toSql();
+        $now               = Factory::getDate()->toSql();
+        $provider          = $this->validateChannel($provider);
         $providerReference = $this->truncateNullable($providerReference, 191);
-        $errorCode = $this->truncateNullable($errorCode, 64);
-        $errorMessage = $this->truncateNullable($errorMessage, 1000);
+        $errorCode         = $this->truncateNullable($errorCode, 64);
+        $errorMessage      = $this->truncateNullable($errorMessage, 1000);
 
         $this->db->transactionStart();
 
@@ -367,7 +412,6 @@ final class DeliveryService
             if ($deliveryState === 'delivered') {
                 $sets[] = $this->db->quoteName('delivered_at') . ' = :delivered_at';
             }
-
             if ($retryAt !== null) {
                 $sets[] = $this->db->quoteName('available_at') . ' = :available_at';
             }
@@ -376,11 +420,13 @@ final class DeliveryService
                 ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
                 ->set($sets)
                 ->where($this->db->quoteName('id') . ' = :delivery_id')
+                ->where($this->db->quoteName('state') . ' = :processing_state')
                 ->bind(':delivery_state', $deliveryState)
                 ->bind(':updated', $now)
                 ->bind(':provider_reference', $providerReference)
                 ->bind(':last_error', $errorMessage)
-                ->bind(':delivery_id', $deliveryId, ParameterType::INTEGER);
+                ->bind(':delivery_id', $deliveryId, ParameterType::INTEGER)
+                ->bind(':processing_state', $processing = 'processing');
 
             if ($deliveryState === 'delivered') {
                 $delivery->bind(':delivered_at', $now);
@@ -390,6 +436,10 @@ final class DeliveryService
             }
 
             $this->db->setQuery($delivery)->execute();
+            if ((int) $this->db->getAffectedRows() !== 1) {
+                throw new RuntimeException('Delivery claim was lost before persistence.');
+            }
+
             $this->db->transactionCommit();
         } catch (Throwable $exception) {
             $this->db->transactionRollback();
@@ -400,7 +450,6 @@ final class DeliveryService
     private function validateChannel(string $channel): string
     {
         $channel = strtolower(trim($channel));
-
         if ($channel === '' || strlen($channel) > 64 || !preg_match('/^[a-z][a-z0-9_.-]*$/', $channel)) {
             throw new InvalidArgumentException('Invalid notification channel.');
         }
