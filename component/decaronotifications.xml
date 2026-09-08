@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade">
+  <name>COM_DECARONOTIFICATIONS</name>
+  <author>Luca De Caro</author>
+  <creationDate>2026-09</creationDate>
+  <copyright>Copyright (C) 2026 Luca De Caro. All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
+  <version>0.1.0</version>
+  <description>COM_DECARONOTIFICATIONS_XML_DESCRIPTION</description>
+  <namespace path="src">Xdecaro\Component\Decaronotifications</namespace>
+  <administration>
+    <menu view="dashboard">COM_DECARONOTIFICATIONS</menu>
+    <files folder="admin">
+      <filename>access.xml</filename>
+      <filename>config.xml</filename>
+      <folder>language</folder>
+      <folder>services</folder>
+      <folder>src</folder>
+      <folder>tmpl</folder>
+    </files>
+  </administration>
+</extension>
