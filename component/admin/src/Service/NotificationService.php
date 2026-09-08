@@ -20,13 +20,6 @@ final class NotificationService
         $this->db = $db;
     }
 
-    /**
-     * Create a notification and return its ID.
-     *
-     * `external_key`, when supplied, is idempotent within `source_component`.
-     * Cross-product references are stored as plain stable identifiers; this
-     * component never creates foreign keys to another extension's tables.
-     */
     public function create(array $data): int
     {
         $recipientType = $this->validateToken((string) ($data['recipient_type'] ?? ''), 32, 'recipient_type');
@@ -99,7 +92,7 @@ final class NotificationService
         ];
 
         $query = $this->db->getQuery(true)
-            ->insert($this->db->quoteName('#__xdecaro_notifications'))
+            ->insert($this->db->quoteName('#__xdecaronotifications_items'))
             ->columns(array_map([$this->db, 'quoteName'], $columns))
             ->values(implode(',', [
                 ':external_key', ':source_component', ':source_entity', ':source_id',
@@ -153,7 +146,7 @@ final class NotificationService
         $state  = 'read';
         $unread = 'unread';
         $query = $this->db->getQuery(true)
-            ->update($this->db->quoteName('#__xdecaro_notifications'))
+            ->update($this->db->quoteName('#__xdecaronotifications_items'))
             ->set($this->db->quoteName('state') . ' = :state')
             ->set($this->db->quoteName('read_at') . ' = :read_at')
             ->where($this->db->quoteName('id') . ' = :id')
@@ -175,7 +168,7 @@ final class NotificationService
         $archivedAt = Factory::getDate()->toSql();
         $state      = 'archived';
         $query = $this->db->getQuery(true)
-            ->update($this->db->quoteName('#__xdecaro_notifications'))
+            ->update($this->db->quoteName('#__xdecaronotifications_items'))
             ->set($this->db->quoteName('state') . ' = :state')
             ->set($this->db->quoteName('archived_at') . ' = :archived_at')
             ->where($this->db->quoteName('id') . ' = :id')
@@ -195,7 +188,7 @@ final class NotificationService
 
         $query = $this->db->getQuery(true)
             ->select('COUNT(*)')
-            ->from($this->db->quoteName('#__xdecaro_notifications'))
+            ->from($this->db->quoteName('#__xdecaronotifications_items'))
             ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
             ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
             ->where($this->db->quoteName('state') . ' = :state')
@@ -212,7 +205,7 @@ final class NotificationService
     {
         $query = $this->db->getQuery(true)
             ->select($this->db->quoteName('id'))
-            ->from($this->db->quoteName('#__xdecaro_notifications'))
+            ->from($this->db->quoteName('#__xdecaronotifications_items'))
             ->where($this->db->quoteName('source_component') . ' = :source_component')
             ->where($this->db->quoteName('external_key') . ' = :external_key')
             ->bind(':source_component', $sourceComponent)
