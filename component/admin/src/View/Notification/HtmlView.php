@@ -1,30 +1,29 @@
 <?php
-namespace Xdecaro\Component\Notifications\Administrator\View\Dashboard;
+namespace Xdecaro\Component\Notifications\Administrator\View\Notification;
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Xdecaro\Core\Asset\AssetService;
 
 final class HtmlView extends BaseHtmlView
 {
-    public array $stats = [];
-    public array $recent = [];
+    public ?object $item = null;
+    public array $recipients = [];
 
     public function display($tpl = null): void
     {
         if (class_exists(AssetService::class)) {
             (new AssetService())->useComponents($this->getDocument()->getWebAssetManager());
         }
-
         $model = $this->getModel();
-        $this->stats = $model->getStats();
-        $this->recent = $model->getRecent();
-
-        ToolbarHelper::title(Text::_('COM_XDECARONOTIFICATIONS_DASHBOARD'), 'bell');
-        ToolbarHelper::preferences('com_xdecaronotifications');
+        $this->item = $model->getItem();
+        $this->recipients = $model->getRecipients();
+        ToolbarHelper::title(Text::_('COM_XDECARONOTIFICATIONS_NOTIFICATION_DETAIL'), 'bell');
+        ToolbarHelper::back(Text::_('JTOOLBAR_BACK'), Route::_('index.php?option=com_xdecaronotifications&view=notifications'));
         parent::display($tpl);
     }
 }
