@@ -26,25 +26,101 @@ jobs:
           coverage: none
 
       - name: Validate
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -f build/build.sh ]]; then
-            bash build/build.sh
-          else
-            while IFS= read -r -d '' php_file; do
-              php -l "$php_file" >/dev/null
-            done < <(find component -type f -name '*.php' -print0)
-            php -r 'if (simplexml_load_file("component/xdecaronotifications.xml") === false) { exit(1); }'
-          fi
+        run: bash build/build.sh
 
       - name: Verify deterministic build
         if: matrix.php == '8.3'
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -f build/build.sh ]]; then
-            cp dist/SHA256SUMS.txt /tmp/SHA256SUMS.first
-            bash build/build.sh
-            diff -u /tmp/SHA256SUMS.first dist/SHA256SUMS.txt
-          fi
+          cp dist/SHA256SUMS.txt /tmp/SHA256SUMS.first
+          bash build/build.sh
+          diff -u /tmp/SHA256SUMS.first dist/SHA256SUMS.txt
+
+  joomla-install:
+    name: Joomla ${{ matrix.joomla }} install
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - joomla: '4.4.14'
+            php: '8.2'
+            sha256: 'a1877816e070fa087529afcd73f214b7d5d76964d3ede0c3e6dfd354baad27b8'
+          - joomla: '5.4.8'
+            php: '8.3'
+            sha256: '8d3585939bca8e6b1d5f3e97dda2cc557c61e610daf488c871e1f62a97be9bd0'
+          - joomla: '6.1.3'
+            php: '8.3'
+            sha256: 'a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1'
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: joomla
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mysqli, zip, simplexml
+          coverage: none
+
+      - name: Build Notifications package
+        run: bash build/build.sh
+
+      - name: Download and verify Joomla
+        shell: bash
+        run: |
+          set -euo pipefail
+          JOOMLA="${{ matrix.joomla }}"
+          FILE="Joomla_${JOOMLA}-Stable-Full_Package.zip"
+          curl --fail --location --retry 3 "https://github.com/joomla/joomla-cms/releases/download/${JOOMLA}/${FILE}" --output /tmp/joomla.zip
+          echo "${{ matrix.sha256 }}  /tmp/joomla.zip" | sha256sum --check --strict
+          mkdir joomla
+          unzip -q /tmp/joomla.zip -d joomla
+
+      - name: Install Joomla
+        shell: bash
+        run: |
+          set -euo pipefail
+          ADMIN_PASS="NotifCI-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}!"
+          jq -n --arg p "$ADMIN_PASS" '{language:"en-GB",site_name:"Notifications CI",admin_email:"admin@example.invalid",admin_user:"admin",admin_password:$p,db_type:"mysqli",db_host:"127.0.0.1",db_user:"root",db_pass:"",db_name:"joomla",db_prefix:"ntf_",db_old:"remove"}' > /tmp/joomla-install.json
+          cd joomla
+          php cli/joomla.php core:install --file=/tmp/joomla-install.json
+
+      - name: Install Notifications package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          PACKAGE="$GITHUB_WORKSPACE/dist/pkg_xdecaronotifications_${VERSION}.zip"
+          cd joomla
+          php cli/joomla.php extension:install --path="$PACKAGE"
+
+      - name: Verify installed extensions and database
+        shell: bash
+        run: |
+          set -euo pipefail
+          MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='package' AND element='pkg_xdecaronotifications';")" = "1"
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='component' AND element='com_xdecaronotifications';")" = "1"
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='task' AND element='xdecaronotifications' AND enabled=1;")" = "1"
+          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='xdecaronotifications' AND element='email' AND enabled=1;")" = "1"
+          for table in items preferences deliveries delivery_attempts; do
+            test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ntf_xdecaronotifications_${table}';")" = "1"
+          done
