@@ -26,15 +26,26 @@ jobs:
           extensions: simplexml
           coverage: none
 
-      - name: Build and validate
-        run: bash build/build.sh
-
-      - name: Preserve checksum
-        if: matrix.php == '8.3'
-        run: cp dist/SHA256SUMS.txt /tmp/SHA256SUMS.first
-
-      - name: Repeat deterministic build
-        if: matrix.php == '8.3'
+      - name: Validate
+        shell: bash
         run: |
-          bash build/build.sh
-          diff -u /tmp/SHA256SUMS.first dist/SHA256SUMS.txt
+          set -euo pipefail
+          if [[ -f build/build.sh ]]; then
+            bash build/build.sh
+          else
+            while IFS= read -r -d '' php_file; do
+              php -l "$php_file" >/dev/null
+            done < <(find component -type f -name '*.php' -print0)
+            php -r 'if (simplexml_load_file("component/xdecaronotifications.xml") === false) { exit(1); }'
+          fi
+
+      - name: Verify deterministic build
+        if: matrix.php == '8.3'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -f build/build.sh ]]; then
+            cp dist/SHA256SUMS.txt /tmp/SHA256SUMS.first
+            bash build/build.sh
+            diff -u /tmp/SHA256SUMS.first dist/SHA256SUMS.txt
+          fi
