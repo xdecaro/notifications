@@ -17,7 +17,7 @@ done < <(find "$COMPONENT" -type f -name '*.php' -print0)
 # Joomla DatabaseQuery::bind() receives its value by reference. Inline
 # assignments such as bind(':state', $state = 'pending') are invalid at
 # runtime even though PHP lint accepts them.
-if grep -R -nE -- '->bind\([^,]+,[[:space:]]*\$[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' "$COMPONENT" --include='*.php'; then
+if grep -R -nE --include='*.php' -- '->bind\([^,]+,[[:space:]]*\$[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' "$COMPONENT"; then
     echo "Inline assignment passed to DatabaseQuery::bind(); bind a declared variable instead." >&2
     exit 1
 fi
