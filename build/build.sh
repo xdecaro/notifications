@@ -45,6 +45,11 @@ if ! grep -q '#__xdecaronotifications_items' "$COMPONENT/admin/sql/install.mysql
     exit 1
 fi
 
+if grep -R --line-number --fixed-strings '#__xdecaro_notifications' "$COMPONENT"; then
+    echo "Obsolete Notifications table namespace detected." >&2
+    exit 1
+fi
+
 rm -rf "$DIST"
 mkdir -p "$DIST"
 
