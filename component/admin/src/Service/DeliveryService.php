@@ -56,10 +56,11 @@ final class DeliveryService
         }
 
         $this->getNotification($notificationId);
-        $channel      = $this->validateChannel($channel);
-        $contextJson  = $this->encodeContext($context);
-        $availableSql = $this->normalizeSqlDate($availableAt) ?: Factory::getDate()->toSql();
-        $now          = Factory::getDate()->toSql();
+        $channel       = $this->validateChannel($channel);
+        $contextJson   = $this->encodeContext($context);
+        $availableSql  = $this->normalizeSqlDate($availableAt) ?: Factory::getDate()->toSql();
+        $now           = Factory::getDate()->toSql();
+        $pendingState  = 'pending';
 
         $existing = $this->findDeliveryId($notificationId, $channel);
         if ($existing !== null) {
@@ -81,7 +82,7 @@ final class DeliveryService
             ->values(':notification_id,:channel,:state,:context,0,:available_at,:created,:updated')
             ->bind(':notification_id', $notificationId, ParameterType::INTEGER)
             ->bind(':channel', $channel)
-            ->bind(':state', $state = 'pending')
+            ->bind(':state', $pendingState)
             ->bind(':context', $contextJson)
             ->bind(':available_at', $availableSql)
             ->bind(':created', $now)
@@ -222,7 +223,10 @@ final class DeliveryService
     /** @return array<int,array<string,mixed>> */
     private function getPendingCandidates(int $limit): array
     {
-        $now = Factory::getDate()->toSql();
+        $now          = Factory::getDate()->toSql();
+        $pendingState = 'pending';
+        $retryState   = 'retry';
+
         $query = $this->db->getQuery(true)
             ->select([
                 $this->db->quoteName('id'),
@@ -235,8 +239,8 @@ final class DeliveryService
             ->where('(' . $this->db->quoteName('state') . ' = :pending_state OR ' . $this->db->quoteName('state') . ' = :retry_state)')
             ->where($this->db->quoteName('available_at') . ' <= :now')
             ->order($this->db->quoteName('available_at') . ' ASC, ' . $this->db->quoteName('id') . ' ASC')
-            ->bind(':pending_state', $pending = 'pending')
-            ->bind(':retry_state', $retry = 'retry')
+            ->bind(':pending_state', $pendingState)
+            ->bind(':retry_state', $retryState)
             ->bind(':now', $now);
 
         return (array) $this->db->setQuery($query, 0, $limit)->loadAssocList();
@@ -244,9 +248,12 @@ final class DeliveryService
 
     private function recoverStaleClaims(int $timeoutSeconds): void
     {
-        $timeoutSeconds = max(60, min(86400, $timeoutSeconds));
-        $cutoff = Factory::getDate('-' . $timeoutSeconds . ' seconds')->toSql();
-        $now    = Factory::getDate()->toSql();
+        $timeoutSeconds  = max(60, min(86400, $timeoutSeconds));
+        $cutoff          = Factory::getDate('-' . $timeoutSeconds . ' seconds')->toSql();
+        $now             = Factory::getDate()->toSql();
+        $retryState      = 'retry';
+        $processingState = 'processing';
+        $error           = 'Recovered stale delivery claim after worker interruption.';
 
         $query = $this->db->getQuery(true)
             ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
@@ -256,11 +263,11 @@ final class DeliveryService
             ->set($this->db->quoteName('last_error') . ' = :last_error')
             ->where($this->db->quoteName('state') . ' = :processing_state')
             ->where($this->db->quoteName('updated') . ' < :cutoff')
-            ->bind(':retry_state', $retry = 'retry')
+            ->bind(':retry_state', $retryState)
             ->bind(':available_at', $now)
             ->bind(':updated', $now)
-            ->bind(':last_error', $error = 'Recovered stale delivery claim after worker interruption.')
-            ->bind(':processing_state', $processing = 'processing')
+            ->bind(':last_error', $error)
+            ->bind(':processing_state', $processingState)
             ->bind(':cutoff', $cutoff);
 
         $this->db->setQuery($query)->execute();
@@ -268,7 +275,11 @@ final class DeliveryService
 
     private function claim(int $deliveryId): bool
     {
-        $now = Factory::getDate()->toSql();
+        $now             = Factory::getDate()->toSql();
+        $processingState = 'processing';
+        $pendingState    = 'pending';
+        $retryState      = 'retry';
+
         $query = $this->db->getQuery(true)
             ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
             ->set($this->db->quoteName('state') . ' = :processing_state')
@@ -276,11 +287,11 @@ final class DeliveryService
             ->where($this->db->quoteName('id') . ' = :id')
             ->where('(' . $this->db->quoteName('state') . ' = :pending_state OR ' . $this->db->quoteName('state') . ' = :retry_state)')
             ->where($this->db->quoteName('available_at') . ' <= :now')
-            ->bind(':processing_state', $processing = 'processing')
+            ->bind(':processing_state', $processingState)
             ->bind(':updated', $now)
             ->bind(':id', $deliveryId, ParameterType::INTEGER)
-            ->bind(':pending_state', $pending = 'pending')
-            ->bind(':retry_state', $retry = 'retry')
+            ->bind(':pending_state', $pendingState)
+            ->bind(':retry_state', $retryState)
             ->bind(':now', $now);
 
         $this->db->setQuery($query)->execute();
@@ -290,9 +301,11 @@ final class DeliveryService
 
     private function releaseClaim(int $deliveryId, int $delaySeconds, string $reason): void
     {
-        $available = Factory::getDate('+' . max(1, $delaySeconds) . ' seconds')->toSql();
-        $now       = Factory::getDate()->toSql();
-        $reason    = $this->truncateNullable($reason, 1000);
+        $available       = Factory::getDate('+' . max(1, $delaySeconds) . ' seconds')->toSql();
+        $now             = Factory::getDate()->toSql();
+        $reason          = $this->truncateNullable($reason, 1000);
+        $pendingState    = 'pending';
+        $processingState = 'processing';
 
         $query = $this->db->getQuery(true)
             ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
@@ -302,28 +315,31 @@ final class DeliveryService
             ->set($this->db->quoteName('last_error') . ' = :last_error')
             ->where($this->db->quoteName('id') . ' = :id')
             ->where($this->db->quoteName('state') . ' = :processing')
-            ->bind(':state', $state = 'pending')
+            ->bind(':state', $pendingState)
             ->bind(':available_at', $available)
             ->bind(':updated', $now)
             ->bind(':last_error', $reason)
             ->bind(':id', $deliveryId, ParameterType::INTEGER)
-            ->bind(':processing', $processing = 'processing');
+            ->bind(':processing', $processingState);
 
         $this->db->setQuery($query)->execute();
     }
 
     private function markExhausted(int $deliveryId): void
     {
-        $now = Factory::getDate()->toSql();
+        $now         = Factory::getDate()->toSql();
+        $failedState = 'failed';
+        $error       = 'Maximum delivery attempts reached.';
+
         $query = $this->db->getQuery(true)
             ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
             ->set($this->db->quoteName('state') . ' = :state')
             ->set($this->db->quoteName('updated') . ' = :updated')
             ->set($this->db->quoteName('last_error') . ' = :last_error')
             ->where($this->db->quoteName('id') . ' = :id')
-            ->bind(':state', $state = 'failed')
+            ->bind(':state', $failedState)
             ->bind(':updated', $now)
-            ->bind(':last_error', $error = 'Maximum delivery attempts reached.')
+            ->bind(':last_error', $error)
             ->bind(':id', $deliveryId, ParameterType::INTEGER);
 
         $this->db->setQuery($query)->execute();
@@ -401,6 +417,7 @@ final class DeliveryService
         $providerReference = $this->truncateNullable($providerReference, 191);
         $errorCode         = $this->truncateNullable($errorCode, 64);
         $errorMessage      = $this->truncateNullable($errorMessage, 1000);
+        $processingState   = 'processing';
 
         $this->db->transactionStart();
 
@@ -455,7 +472,7 @@ final class DeliveryService
                 ->bind(':provider_reference', $providerReference)
                 ->bind(':last_error', $errorMessage)
                 ->bind(':delivery_id', $deliveryId, ParameterType::INTEGER)
-                ->bind(':processing_state', $processing = 'processing');
+                ->bind(':processing_state', $processingState);
 
             if ($deliveryState === 'delivered') {
                 $delivery->bind(':delivered_at', $now);
