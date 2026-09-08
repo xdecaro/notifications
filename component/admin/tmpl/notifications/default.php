@@ -11,7 +11,7 @@ $priority = (string) $this->state->get('filter.priority');
 $category = (string) $this->state->get('filter.category');
 ?>
 <div class="xdecaro-scope">
-    <form action="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=notifications'); ?>" method="get" id="adminForm" name="adminForm">
+    <form action="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=notifications'); ?>" method="post" id="adminForm" name="adminForm">
         <input type="hidden" name="option" value="com_xdecaronotifications">
         <input type="hidden" name="view" value="notifications">
 
@@ -64,6 +64,7 @@ $category = (string) $this->state->get('filter.category');
                             <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY'); ?></th>
                             <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></th>
                             <th scope="col"><?php echo Text::_('JDATE'); ?></th>
+                            <th scope="col" class="text-end"><?php echo Text::_('JACTIONS'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,6 +85,22 @@ $category = (string) $this->state->get('filter.category');
                             <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper((string) $item->priority)); ?></td>
                             <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper((string) $item->state)); ?></td>
                             <td><?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC5')); ?></td>
+                            <td class="text-end text-nowrap">
+                                <?php if ((string) $item->state === 'unread') : ?>
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-outline-primary"
+                                        formaction="<?php echo Route::_('index.php?option=com_xdecaronotifications&task=notification.markRead&id=' . (int) $item->id); ?>"
+                                    ><?php echo Text::_('COM_XDECARONOTIFICATIONS_MARK_READ'); ?></button>
+                                <?php endif; ?>
+                                <?php if ((string) $item->state !== 'archived') : ?>
+                                    <button
+                                        type="submit"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        formaction="<?php echo Route::_('index.php?option=com_xdecaronotifications&task=notification.archive&id=' . (int) $item->id); ?>"
+                                    ><?php echo Text::_('COM_XDECARONOTIFICATIONS_ARCHIVE'); ?></button>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -94,5 +111,7 @@ $category = (string) $this->state->get('filter.category');
                 <?php echo $this->pagination->getListFooter(); ?>
             </div>
         <?php endif; ?>
+
+        <?php echo HTMLHelper::_('form.token'); ?>
     </form>
 </div>
