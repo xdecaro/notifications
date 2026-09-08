@@ -17,14 +17,15 @@ final class PreferencesController extends BaseController
         Session::checkToken('post') or jexit(Text::_('JINVALID_TOKEN'));
         $app = Factory::getApplication();
         $user = $app->getIdentity();
+
         if (!$user || $user->guest) {
             $app->redirect(Route::_('index.php?option=com_users&view=login', false));
             return;
         }
 
         $enabled = $app->input->post->getInt('enabled', 0) === 1;
-        $digest = $app->input->post->getCmd('digest', 'immediate');
         $component = $app->bootComponent('com_decaronotifications');
+
         if (!method_exists($component, 'getPreferenceService')) {
             $app->enqueueMessage(Text::_('COM_DECARONOTIFICATIONS_SERVICE_UNAVAILABLE'), 'error');
             $app->redirect(Route::_('index.php?option=com_decaronotifications&view=notifications', false));
@@ -36,8 +37,9 @@ final class PreferencesController extends BaseController
             '*',
             'internal',
             $enabled,
-            $digest
+            'immediate'
         );
+
         $app->enqueueMessage(Text::_('COM_DECARONOTIFICATIONS_PREFERENCES_SAVED'), 'message');
         $app->redirect(Route::_('index.php?option=com_decaronotifications&view=notifications', false));
     }
