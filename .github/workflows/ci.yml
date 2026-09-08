@@ -99,9 +99,21 @@ jobs:
         run: |
           set -euo pipefail
           ADMIN_PASS="NotifCI-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}!"
-          jq -n --arg p "$ADMIN_PASS" '{language:"en-GB",site_name:"Notifications CI",admin_email:"admin@example.invalid",admin_user:"admin",admin_password:$p,db_type:"mysqli",db_host:"127.0.0.1",db_user:"root",db_pass:"",db_name:"joomla",db_prefix:"ntf_",db_old:"remove"}' > /tmp/joomla-install.json
           cd joomla
-          php cli/joomla.php core:install --file=/tmp/joomla-install.json
+          php installation/joomla.php install \
+            --site-name="Notifications CI" \
+            --admin-user="Notifications CI Admin" \
+            --admin-username=admin \
+            --admin-password="$ADMIN_PASS" \
+            --admin-email=admin@example.invalid \
+            --db-type=mysqli \
+            --db-host=127.0.0.1 \
+            --db-user=root \
+            --db-pass='' \
+            --db-name=joomla \
+            --db-prefix=ntf_ \
+            --db-encryption=0 \
+            --no-interaction
 
       - name: Install Notifications package
         shell: bash
