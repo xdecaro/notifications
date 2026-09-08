@@ -25,6 +25,7 @@ final class CoreIntegrationService
 
         return [
             new Capability('com_xdecaronotifications', 'notifications.publish', '1'),
+            new Capability('com_xdecaronotifications', 'notifications.query', '1'),
             new Capability('com_xdecaronotifications', 'notifications.state', '1'),
             new Capability('com_xdecaronotifications', 'notifications.unread_count', '1'),
             new Capability('com_xdecaronotifications', 'notifications.preferences', '1'),
