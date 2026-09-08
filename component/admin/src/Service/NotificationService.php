@@ -89,6 +89,7 @@ final class NotificationService
         $expiresAt = $this->normalizeSqlDate($data['expires_at'] ?? null);
         $createdBy = isset($data['created_by']) ? max(0, (int) $data['created_by']) : (int) Factory::getApplication()->getIdentity()->id;
         $created   = Factory::getDate()->toSql();
+        $state     = 'unread';
 
         $columns = [
             'external_key', 'source_component', 'source_entity', 'source_id',
@@ -122,7 +123,7 @@ final class NotificationService
             ->bind(':message', $message)
             ->bind(':action_url', $actionValue)
             ->bind(':payload', $payload)
-            ->bind(':state', $state = 'unread')
+            ->bind(':state', $state)
             ->bind(':created', $created)
             ->bind(':created_by', $createdBy)
             ->bind(':expires_at', $expiresAt);
@@ -149,16 +150,18 @@ final class NotificationService
         }
 
         $readAt = Factory::getDate()->toSql();
+        $state  = 'read';
+        $unread = 'unread';
         $query = $this->db->getQuery(true)
             ->update($this->db->quoteName('#__xdecaro_notifications'))
             ->set($this->db->quoteName('state') . ' = :state')
             ->set($this->db->quoteName('read_at') . ' = :read_at')
             ->where($this->db->quoteName('id') . ' = :id')
             ->where($this->db->quoteName('state') . ' = :unread')
-            ->bind(':state', $state = 'read')
+            ->bind(':state', $state)
             ->bind(':read_at', $readAt)
             ->bind(':id', $id)
-            ->bind(':unread', $unread = 'unread');
+            ->bind(':unread', $unread);
 
         $this->db->setQuery($query)->execute();
     }
@@ -170,12 +173,13 @@ final class NotificationService
         }
 
         $archivedAt = Factory::getDate()->toSql();
+        $state      = 'archived';
         $query = $this->db->getQuery(true)
             ->update($this->db->quoteName('#__xdecaro_notifications'))
             ->set($this->db->quoteName('state') . ' = :state')
             ->set($this->db->quoteName('archived_at') . ' = :archived_at')
             ->where($this->db->quoteName('id') . ' = :id')
-            ->bind(':state', $state = 'archived')
+            ->bind(':state', $state)
             ->bind(':archived_at', $archivedAt)
             ->bind(':id', $id);
 
@@ -186,6 +190,8 @@ final class NotificationService
     {
         $recipientType = $this->validateToken($recipientType, 32, 'recipient_type');
         $recipientId   = $this->validateIdentifier($recipientId, 'recipient_id');
+        $state         = 'unread';
+        $now           = Factory::getDate()->toSql();
 
         $query = $this->db->getQuery(true)
             ->select('COUNT(*)')
@@ -196,8 +202,8 @@ final class NotificationService
             ->where('(' . $this->db->quoteName('expires_at') . ' IS NULL OR ' . $this->db->quoteName('expires_at') . ' >= :now)')
             ->bind(':recipient_type', $recipientType)
             ->bind(':recipient_id', $recipientId)
-            ->bind(':state', $state = 'unread')
-            ->bind(':now', $now = Factory::getDate()->toSql());
+            ->bind(':state', $state)
+            ->bind(':now', $now);
 
         return (int) $this->db->setQuery($query)->loadResult();
     }
