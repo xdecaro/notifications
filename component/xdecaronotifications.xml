@@ -32,13 +32,13 @@
 
   <install>
     <sql>
-      <file driver="mysql" charset="utf8mb4">sql/install.mysql.utf8mb4.sql</file>
+      <file driver="mysql" charset="utf8mb4">admin/sql/install.mysql.utf8mb4.sql</file>
     </sql>
   </install>
 
   <update>
     <schemas>
-      <schemapath type="mysql">sql/updates/mysql</schemapath>
+      <schemapath type="mysql">admin/sql/updates/mysql</schemapath>
     </schemas>
   </update>
 </extension>
