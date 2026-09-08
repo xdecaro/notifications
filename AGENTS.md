@@ -12,9 +12,9 @@ Communications remains the owner of official/manual communications, PEC, protoco
 
 Use Xdecaro Core only through documented public APIs. Prefer `EntityReference`, `Capability`, `IntegrationEvent` and shared UI assets when available. Core integration must remain optional and degrade safely when Core is missing or too old.
 
-Public capabilities are `notifications.publish`, `notifications.state`, `notifications.unread_count`, `notifications.preferences`, `notifications.delivery_status` and `notifications.delivery_channels`. Never advertise a capability before the corresponding implementation and safe fallback exist.
+Public capabilities are `notifications.publish`, `notifications.query`, `notifications.state`, `notifications.unread_count`, `notifications.preferences`, `notifications.delivery_status` and `notifications.delivery_channels`. Never advertise a capability before the corresponding implementation and safe fallback exist.
 
-An entity reference is an integration pointer, never proof of authorization.
+An entity reference is an integration pointer, never proof of authorization. Recipient-scoped query/state methods reduce accidental cross-recipient access but callers must still enforce Joomla ACL and identity ownership before invoking them.
 
 ## Delivery architecture
 
@@ -36,7 +36,9 @@ Reserved database namespace: `#__xdecaronotifications_*`. Do not rename existing
 
 ## Distribution
 
-Stable distribution is `pkg_xdecaronotifications`. It contains the component, Scheduled Tasks plugin and automatic email channel plugin. Every release must update VERSION, manifests, package manifest, update feed, changelog, tag/release and installable ZIPs. Never publish different files with the same version.
+Stable distribution is `pkg_xdecaronotifications`. It contains the component, Scheduled Tasks plugin and automatic email channel plugin. Every release must update VERSION, manifests, package manifest, update feed, changelog, tag/release and installable ZIPs. Never publish different files with the same version. Package updates must preserve administrator plugin-enabled/disabled choices.
+
+Clean-install CI must validate the installable package on supported Joomla majors, not only PHP syntax or ZIP structure.
 
 ## UI
 
