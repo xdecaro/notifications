@@ -56,17 +56,28 @@ foreach ([
   }
 }
 $componentManifest = simplexml_load_file($root . "/component/xdecaronotifications.xml");
+$adminFolder = trim((string) $componentManifest->administration->files["folder"]);
+if ($adminFolder === "") {
+  fwrite(STDERR, "Component administration files folder is missing.\n");
+  exit(1);
+}
+$installedRootSource = $root . "/component/" . $adminFolder;
 foreach ($componentManifest->install->sql->file as $sqlFile) {
   $path = trim((string) $sqlFile);
-  if ($path === "" || !is_file($root . "/component/" . $path)) {
-    fwrite(STDERR, "Component install SQL path does not exist: {$path}\n");
+  $charset = strtolower(trim((string) $sqlFile["charset"]));
+  if ($charset !== "utf8") {
+    fwrite(STDERR, "Joomla SQL manifest charset must be utf8; got {$charset}.\n");
+    exit(1);
+  }
+  if ($path === "" || !is_file($installedRootSource . "/" . $path)) {
+    fwrite(STDERR, "Component install SQL path does not map to the installed administrator root: {$path}\n");
     exit(1);
   }
 }
 foreach ($componentManifest->update->schemas->schemapath as $schemaPath) {
   $path = trim((string) $schemaPath);
-  if ($path === "" || !is_dir($root . "/component/" . $path)) {
-    fwrite(STDERR, "Component schema update path does not exist: {$path}\n");
+  if ($path === "" || !is_dir($installedRootSource . "/" . $path)) {
+    fwrite(STDERR, "Component schema path does not map to the installed administrator root: {$path}\n");
     exit(1);
   }
 }
