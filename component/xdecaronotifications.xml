@@ -8,7 +8,7 @@
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
   <version>0.1.0</version>
   <description>COM_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
-  <namespace path="src">Xdecaro\Component\Notifications</namespace>
+  <namespace path="src">xdecaro\Component\Notifications</namespace>
   <administration>
     <menu view="dashboard">COM_XDECARONOTIFICATIONS</menu>
     <files folder="admin">

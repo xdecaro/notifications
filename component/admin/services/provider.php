@@ -1,5 +1,5 @@
 <?php
-namespace Xdecaro\Component\Notifications\Administrator\Service;
+namespace xdecaro\Component\Notifications\Administrator\Service;
 
 defined('_JEXEC') or die;
 
@@ -10,13 +10,13 @@ use Joomla\CMS\Extension\Service\Provider\MVCFactory;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
-use Xdecaro\Component\Notifications\Administrator\Extension\NotificationsComponent;
+use xdecaro\Component\Notifications\Administrator\Extension\NotificationsComponent;
 
 return new class implements ServiceProviderInterface {
     public function register(Container $container): void
     {
-        $container->registerServiceProvider(new MVCFactory('Xdecaro\\Component\\Notifications'));
-        $container->registerServiceProvider(new ComponentDispatcherFactory('Xdecaro\\Component\\Notifications'));
+        $container->registerServiceProvider(new MVCFactory('xdecaro\\Component\\Notifications'));
+        $container->registerServiceProvider(new ComponentDispatcherFactory('xdecaro\\Component\\Notifications'));
         $container->share(CoreIntegrationService::class, static fn (): CoreIntegrationService => new CoreIntegrationService());
         $container->set(ComponentInterface::class, static fn (Container $container): ComponentInterface => new NotificationsComponent(
             $container->get(ComponentDispatcherFactoryInterface::class),

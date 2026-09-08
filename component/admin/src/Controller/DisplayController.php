@@ -1,5 +1,5 @@
 <?php
-namespace Xdecaro\Component\Notifications\Administrator\Controller;
+namespace xdecaro\Component\Notifications\Administrator\Controller;
 
 defined('_JEXEC') or die;
 

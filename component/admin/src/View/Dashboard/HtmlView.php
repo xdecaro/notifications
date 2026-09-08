@@ -1,10 +1,10 @@
 <?php
-namespace Xdecaro\Component\Notifications\Administrator\View\Dashboard;
+namespace xdecaro\Component\Notifications\Administrator\View\Dashboard;
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Xdecaro\Core\Asset\AssetService;
+use xdecaro\Core\Asset\AssetService;
 
 final class HtmlView extends BaseHtmlView
 {

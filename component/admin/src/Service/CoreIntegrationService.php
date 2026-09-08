@@ -1,10 +1,10 @@
 <?php
-namespace Xdecaro\Component\Notifications\Administrator\Service;
+namespace xdecaro\Component\Notifications\Administrator\Service;
 
 defined('_JEXEC') or die;
 
-use Xdecaro\Core\Integration\Capability;
-use Xdecaro\Core\Integration\EntityReference;
+use xdecaro\Core\Integration\Capability;
+use xdecaro\Core\Integration\EntityReference;
 
 final class CoreIntegrationService
 {
