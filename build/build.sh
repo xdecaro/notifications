@@ -40,8 +40,8 @@ if (trim((string) $manifest->update->schemas->schemapath) !== "sql/updates/mysql
 }
 ' "$ROOT/VERSION" "$MANIFEST"
 
-if ! grep -q '#__xdecaro_notifications' "$COMPONENT/admin/sql/install.mysql.utf8mb4.sql"; then
-    echo "Notifications install SQL must use Joomla #__ table prefix." >&2
+if ! grep -q '#__xdecaronotifications_items' "$COMPONENT/admin/sql/install.mysql.utf8mb4.sql"; then
+    echo "Notifications install SQL must use the reserved #__xdecaronotifications_* namespace." >&2
     exit 1
 fi
 
