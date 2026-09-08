@@ -17,7 +17,7 @@ final class DashboardModel extends BaseDatabaseModel
                 "SUM(CASE WHEN " . $db->quoteName('priority') . " = 'critical' AND " . $db->quoteName('state') . " <> 'archived' THEN 1 ELSE 0 END) AS critical",
                 "SUM(CASE WHEN " . $db->quoteName('state') . " = 'archived' THEN 1 ELSE 0 END) AS archived",
             ])
-            ->from($db->quoteName('#__xdecaro_notifications'));
+            ->from($db->quoteName('#__xdecaronotifications_items'));
 
         $row = $db->setQuery($query)->loadAssoc() ?: [];
 
@@ -38,7 +38,7 @@ final class DashboardModel extends BaseDatabaseModel
                 'id', 'title', 'recipient_type', 'recipient_id', 'category',
                 'priority', 'state', 'created', 'source_component',
             ])
-            ->from($db->quoteName('#__xdecaro_notifications'))
+            ->from($db->quoteName('#__xdecaronotifications_items'))
             ->order($db->quoteName('created') . ' DESC');
 
         return (array) $db->setQuery($query, 0, $limit)->loadObjectList();
