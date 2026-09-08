@@ -79,6 +79,31 @@ final class PreferenceService
         $this->db->setQuery($query)->execute();
     }
 
+    public function removePreference(
+        string $recipientType,
+        string $recipientId,
+        string $category,
+        string $channel
+    ): void {
+        $recipientType = $this->validateToken($recipientType, 32, 'recipient_type');
+        $recipientId   = $this->validateIdentifier($recipientId, 'recipient_id');
+        $category      = $this->normalizeCategory($category);
+        $channel       = $this->validateChannel($channel);
+
+        $query = $this->db->getQuery(true)
+            ->delete($this->db->quoteName('#__xdecaronotifications_preferences'))
+            ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
+            ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
+            ->where($this->db->quoteName('category') . ' = :category')
+            ->where($this->db->quoteName('channel') . ' = :channel')
+            ->bind(':recipient_type', $recipientType)
+            ->bind(':recipient_id', $recipientId)
+            ->bind(':category', $category)
+            ->bind(':channel', $channel);
+
+        $this->db->setQuery($query)->execute();
+    }
+
     public function isEnabled(
         string $recipientType,
         string $recipientId,
@@ -100,7 +125,7 @@ final class PreferenceService
             ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
             ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
             ->where($this->db->quoteName('channel') . ' = :channel')
-            ->where($this->db->quoteName('category') . ' IN (:exact_category, :wildcard_category)')
+            ->where('(' . $this->db->quoteName('category') . ' = :exact_category OR ' . $this->db->quoteName('category') . ' = :wildcard_category)')
             ->order('CASE WHEN ' . $this->db->quoteName('category') . ' = :order_category THEN 0 ELSE 1 END')
             ->bind(':recipient_type', $recipientType)
             ->bind(':recipient_id', $recipientId)
@@ -114,10 +139,7 @@ final class PreferenceService
         return $row === null ? $default : ((int) $row['enabled'] === 1);
     }
 
-    /**
-     * @param array<int,string> $channels
-     * @return array<int,string>
-     */
+    /** @param array<int,string> $channels @return array<int,string> */
     public function filterEnabledChannels(
         string $recipientType,
         string $recipientId,
@@ -187,7 +209,6 @@ final class PreferenceService
     private function normalizeCategory(string $category): string
     {
         $category = strtolower(trim($category));
-
         if ($category === '*') {
             return '*';
         }
@@ -198,7 +219,6 @@ final class PreferenceService
     private function validateChannel(string $channel): string
     {
         $channel = strtolower(trim($channel));
-
         if ($channel === '' || strlen($channel) > 64 || !preg_match('/^[a-z][a-z0-9_.-]*$/', $channel)) {
             throw new InvalidArgumentException('Invalid notification channel.');
         }
@@ -209,7 +229,6 @@ final class PreferenceService
     private function validateToken(string $value, int $maxLength, string $field): string
     {
         $value = strtolower(trim($value));
-
         if ($value === '' || strlen($value) > $maxLength || !preg_match('/^[a-z][a-z0-9_]*$/', $value)) {
             throw new InvalidArgumentException('Invalid ' . $field . '.');
         }
@@ -220,7 +239,6 @@ final class PreferenceService
     private function validateIdentifier(string $value, string $field): string
     {
         $value = trim($value);
-
         if ($value === '' || strlen($value) > 128 || !preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]*$/', $value)) {
             throw new InvalidArgumentException('Invalid ' . $field . '.');
         }
