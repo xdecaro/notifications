@@ -10,13 +10,15 @@ Source-domain rules remain in the source component. Notifications must not dupli
 
 Use Xdecaro Core only through documented public APIs. Prefer `EntityReference`, `Capability`, `IntegrationEvent` and shared UI assets when available. Core integration must remain optional and degrade safely when Core is missing or too old.
 
-Initial public capabilities are `notifications.publish`, `notifications.preferences` and `notifications.delivery_status`.
+Public capabilities include `notifications.publish`, `notifications.state`, `notifications.unread_count`, `notifications.preferences`, `notifications.delivery_status` and `notifications.delivery_channels`. Do not advertise a capability before the corresponding implementation and safe fallback exist.
 
 A source event may result in a notification, but Notifications owns the resulting notification record and delivery lifecycle. Never use an entity reference as proof of authorization.
 
+Delivery adapters must use the public channel contract and must not write Notifications tables directly. Communications remains the owner of official/manual communications and PEC workflows; Notifications must not become a second Communications component.
+
 ## Joomla
 
-Target Joomla 4, 5 and 6 where technically possible. Use namespaces, MVC, service providers, DI, ACL, CSRF protection, filtered input, escaped output, Language API and Web Asset Manager. Use `#__` for future tables and preserve data on updates.
+Target Joomla 4, 5 and 6 where technically possible. Use namespaces, MVC, service providers, DI, ACL, CSRF protection, filtered input, escaped output, Language API and Web Asset Manager. Use `#__` for tables and preserve data on updates.
 
 ## UI
 
