@@ -129,10 +129,25 @@ jobs:
         run: |
           set -euo pipefail
           MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
-          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='package' AND element='pkg_xdecaronotifications';")" = "1"
-          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='component' AND element='com_xdecaronotifications';")" = "1"
-          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='task' AND element='xdecaronotifications' AND enabled=1;")" = "1"
-          test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='xdecaronotifications' AND element='email' AND enabled=1;")" = "1"
+
+          echo 'Notifications extension rows:'
+          "${MYSQL[@]}" -e "SELECT type,folder,element,enabled,package_id FROM ntf_extensions WHERE element LIKE '%xdecaronotifications%' OR folder='xdecaronotifications' ORDER BY type,folder,element;"
+          echo 'Notifications tables:'
+          "${MYSQL[@]}" -e "SELECT table_name FROM information_schema.tables WHERE table_schema='joomla' AND table_name LIKE 'ntf_xdecaronotifications_%' ORDER BY table_name;"
+
+          package_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='package' AND element='pkg_xdecaronotifications';")"
+          component_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='component' AND element='com_xdecaronotifications';")"
+          task_enabled="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='task' AND element='xdecaronotifications' AND enabled=1;")"
+          email_enabled="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='xdecaronotifications' AND element='email' AND enabled=1;")"
+
+          echo "package=$package_count component=$component_count task_enabled=$task_enabled email_enabled=$email_enabled"
+          test "$package_count" = "1"
+          test "$component_count" = "1"
+          test "$task_enabled" = "1"
+          test "$email_enabled" = "1"
+
           for table in items preferences deliveries delivery_attempts; do
-            test "$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ntf_xdecaronotifications_${table}';")" = "1"
+            count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ntf_xdecaronotifications_${table}';")"
+            echo "table_${table}=$count"
+            test "$count" = "1"
           done
