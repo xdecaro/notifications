@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// This synchronizer supports both existing and not-yet-populated SHA-256 feed entries.
 $root = dirname(__DIR__);
 $version = trim((string) file_get_contents($root . '/VERSION'));
 $package = $root . '/dist/pkg_xdecaronotifications_' . $version . '.zip';
