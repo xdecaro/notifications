@@ -25,6 +25,9 @@ jobs:
           extensions: simplexml
           coverage: none
 
+      - name: Validate canonical Core namespace
+        run: bash build/validate-core-namespace.sh
+
       - name: Validate
         run: bash build/build.sh
 
