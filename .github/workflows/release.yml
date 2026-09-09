@@ -43,6 +43,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate canonical Core namespace
+        run: bash build/validate-core-namespace.sh
+
       - name: Build and validate
         run: bash build/build.sh
 
