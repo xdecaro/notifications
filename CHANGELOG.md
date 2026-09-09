@@ -2,6 +2,15 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.0.2 — 2026-09-09
+
+### Integration
+
+- Corrected the five administrator views that still imported `Xdecaro\Core\Asset\AssetService`; all runtime Core consumption now uses canonical `xdecaro\Core`.
+- Added a local CI/release guard against future runtime use of the deprecated Core compatibility namespace.
+- Added a non-destructive 1.0.2 schema marker; no database structure or stored notification data changes.
+- Preserved notification publishing, preferences, delivery queue, scheduled workers and channel behavior.
+
 ## 1.0.1 — 2026-09-09
 
 ### Integration
