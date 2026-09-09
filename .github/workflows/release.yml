@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - VERSION
+      - build/update-feed-checksum.php
 
 permissions:
   contents: write
