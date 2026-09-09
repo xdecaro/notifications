@@ -23,9 +23,22 @@ $text = preg_replace(
     $count
 );
 
-if (!is_string($text) || $count < 1) {
+if (!is_string($text)) {
     fwrite(STDERR, "Unable to update Notifications SHA-256 in update feed.\n");
     exit(1);
+}
+
+if ($count < 1) {
+    $marker = '</downloads>';
+    $position = strpos($text, $marker);
+
+    if ($position === false) {
+        fwrite(STDERR, "Notifications update feed has no downloads section.\n");
+        exit(1);
+    }
+
+    $replacement = $marker . "\n    <sha256>" . $digest . '</sha256>';
+    $text = substr_replace($text, $replacement, $position, strlen($marker));
 }
 
 file_put_contents($feed, $text);
