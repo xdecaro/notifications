@@ -8,7 +8,7 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use RuntimeException;
-use Xdecaro\Core\Asset\AssetService;
+use xdecaro\Core\Asset\AssetService;
 
 final class HtmlView extends BaseHtmlView
 {
