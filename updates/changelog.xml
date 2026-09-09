@@ -3,6 +3,16 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.0.2</version>
+    <change>
+      <item>Corrects the remaining administrator view imports from the deprecated Xdecaro\Core namespace to canonical xdecaro\Core.</item>
+      <item>Preserves notification, preference and delivery behavior with no database structure changes.</item>
+      <item>Adds a local CI/release guard against future legacy Core namespace regressions.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.0.1</version>
     <change>
       <item>Uses the canonical lowercase xdecaro\Core namespace for new Core integration code.</item>
