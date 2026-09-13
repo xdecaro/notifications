@@ -3,6 +3,17 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.0.4</version>
+    <addition>
+      <item>Adds an administrator diagnostic action that creates a test notification for the current Joomla user.</item>
+      <item>Queues the diagnostic delivery exclusively through the in_app channel, so the test never sends email.</item>
+      <item>Protects the diagnostic action with Joomla CSRF validation and the component core.manage permission.</item>
+      <item>Adds a CI contract guard for the diagnostic test-notification flow.</item>
+    </addition>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.0.3</version>
     <change>
       <item>Fixes administrator list screens on Joomla by replacing invalid ListModel getApplication() calls with Joomla Factory application access.</item>

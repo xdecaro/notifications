@@ -2,6 +2,16 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.0.4 — 2026-09-14
+
+### Diagnostics
+
+- Added an **Information → Diagnostics** button that creates a test notification for the currently signed-in Joomla administrator.
+- The diagnostic test queues only the native `in_app` delivery channel and never sends an email.
+- Protected the action with Joomla CSRF validation and the component `core.manage` permission.
+- Added Italian and English administrator strings and a CI contract guard for the diagnostic flow.
+- Added a non-destructive 1.0.4 schema marker; no database structure or stored notification data changes.
+
 ## 1.0.3 — 2026-09-13
 
 ### Joomla compatibility
