@@ -36,7 +36,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 
 - Migrated new Core references to the canonical lowercase `xdecaro\Core` namespace.
 - Added optional Core 1.4 `CapabilityRegistry` registration for all public Notifications capabilities.
-- Exposed `CoreIntegrationService` from the booted component so other xdecaro products can discover capabilities without reading private tables.
+- Exposed `CoreIntegrationService` from the booted Notifications component so other xdecaro products can discover capabilities without reading private tables.
 - Kept Core optional: Notifications continues to work when Core or the 1.4 registry is unavailable.
 - Added a non-destructive 1.0.1 schema marker; no database structure or stored notification data changes.
 
