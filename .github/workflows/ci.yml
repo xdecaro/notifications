@@ -28,6 +28,9 @@ jobs:
       - name: Validate canonical Core namespace
         run: bash build/validate-core-namespace.sh
 
+      - name: Validate Joomla ListModel application access
+        run: bash build/validate-listmodel-application.sh
+
       - name: Validate
         run: bash build/build.sh
 

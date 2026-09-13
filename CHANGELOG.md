@@ -2,6 +2,15 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.0.3 — 2026-09-13
+
+### Joomla compatibility
+
+- Fixed administrator list screens that called the undefined `ListModel::getApplication()` method.
+- Updated Notifications, Deliveries and Preferences models to use Joomla's supported `Factory::getApplication()` access pattern.
+- Added a CI regression guard so unsupported `ListModel` application access is rejected before release.
+- Added a non-destructive 1.0.3 schema marker; no database structure or stored notification data changes.
+
 ## 1.0.2 — 2026-09-09
 
 ### Integration
