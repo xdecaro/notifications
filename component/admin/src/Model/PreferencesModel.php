@@ -3,6 +3,7 @@ namespace Xdecaro\Component\Notifications\Administrator\Model;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\Database\DatabaseQuery;
 
@@ -10,7 +11,7 @@ final class PreferencesModel extends ListModel
 {
     protected function populateState($ordering = 'p.modified', $direction = 'DESC'): void
     {
-        $app = $this->getApplication();
+        $app = Factory::getApplication();
         $this->setState('filter.search', $app->getUserStateFromRequest('com_xdecaronotifications.preferences.search', 'filter_search', '', 'string'));
         $this->setState('filter.channel', $app->getUserStateFromRequest('com_xdecaronotifications.preferences.channel', 'filter_channel', '', 'cmd'));
         parent::populateState($ordering, $direction);
