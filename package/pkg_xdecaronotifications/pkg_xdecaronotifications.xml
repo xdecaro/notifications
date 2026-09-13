@@ -4,10 +4,10 @@
   <packagename>xdecaronotifications</packagename>
   <author>Luca De Caro</author>
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
-  <creationDate>2026-09-09</creationDate>
+  <creationDate>2026-09-13</creationDate>
   <copyright>Copyright (C) 2026 Luca De Caro</copyright>
   <license>GNU General Public License version 2 or later</license>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <description>Shared notification center, delivery worker and automatic email channel for the xdecaro Joomla ecosystem.</description>
   <blockChildUninstall>true</blockChildUninstall>
   <scriptfile>script.php</scriptfile>

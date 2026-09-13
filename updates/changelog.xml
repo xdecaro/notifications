@@ -3,6 +3,17 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.0.3</version>
+    <change>
+      <item>Fixes administrator list screens on Joomla by replacing invalid ListModel getApplication() calls with Joomla Factory application access.</item>
+      <item>Applies the compatibility fix to Notifications, Deliveries and Preferences.</item>
+      <item>Adds a CI regression guard for unsupported ListModel application access.</item>
+      <item>No database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.0.2</version>
     <change>
       <item>Corrects the remaining administrator view imports from the deprecated Xdecaro\Core namespace to canonical xdecaro\Core.</item>
