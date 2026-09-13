@@ -1,0 +1,2 @@
+-- Notifications 1.0.4
+-- No database schema changes; release marker for Joomla schema version tracking.
