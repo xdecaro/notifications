@@ -31,6 +31,9 @@ jobs:
       - name: Validate Joomla ListModel application access
         run: bash build/validate-listmodel-application.sh
 
+      - name: Validate diagnostic test notification contract
+        run: bash build/validate-diagnostic-test-notification.sh
+
       - name: Validate
         run: bash build/build.sh
 
