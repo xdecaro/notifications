@@ -54,67 +54,69 @@ $liveRefreshSeconds = max(5, min(300, (int) ComponentHelper::getParams('com_xdec
             </div>
         </div>
 
-        <?php if (!$this->items) : ?>
-            <div class="alert alert-info" role="status"><?php echo Text::_('COM_XDECARONOTIFICATIONS_NO_NOTIFICATIONS'); ?></div>
-        <?php else : ?>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <caption class="visually-hidden"><?php echo Text::_('COM_XDECARONOTIFICATIONS_NOTIFICATIONS'); ?></caption>
-                    <thead>
-                        <tr>
-                            <th scope="col"><?php echo Text::_('JGLOBAL_TITLE'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_RECIPIENT'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_CATEGORY'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></th>
-                            <th scope="col"><?php echo Text::_('JDATE'); ?></th>
-                            <th scope="col" class="text-end"><?php echo Text::_('COM_XDECARONOTIFICATIONS_ACTIONS'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($this->items as $item) : ?>
-                        <tr>
-                            <td>
-                                <strong><?php echo htmlspecialchars((string) $item->title, ENT_QUOTES, 'UTF-8'); ?></strong>
-                                <div class="small text-body-secondary mt-1"><?php echo nl2br(htmlspecialchars((string) $item->message, ENT_QUOTES, 'UTF-8')); ?></div>
-                                <?php if ((string) $item->source_component !== '') : ?>
-                                    <div class="small text-body-secondary mt-1">
-                                        <?php echo Text::_('COM_XDECARONOTIFICATIONS_SOURCE'); ?>:
-                                        <?php echo htmlspecialchars(trim((string) $item->source_component . ' / ' . (string) $item->source_entity . ' / ' . (string) $item->source_id, ' /'), ENT_QUOTES, 'UTF-8'); ?>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
-                            <td><?php echo htmlspecialchars((string) $item->recipient_type . ':' . (string) $item->recipient_id, ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><span class="badge bg-secondary"><?php echo htmlspecialchars((string) $item->category, ENT_QUOTES, 'UTF-8'); ?></span></td>
-                            <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper((string) $item->priority)); ?></td>
-                            <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper((string) $item->state)); ?></td>
-                            <td><?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC5')); ?></td>
-                            <td class="text-end text-nowrap">
-                                <?php if ((string) $item->state === 'unread') : ?>
-                                    <button
-                                        type="submit"
-                                        class="btn btn-sm btn-outline-primary"
-                                        formaction="<?php echo Route::_('index.php?option=com_xdecaronotifications&task=notification.markRead&id=' . (int) $item->id); ?>"
-                                    ><?php echo Text::_('COM_XDECARONOTIFICATIONS_MARK_READ'); ?></button>
-                                <?php endif; ?>
-                                <?php if ((string) $item->state !== 'archived') : ?>
-                                    <button
-                                        type="submit"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        formaction="<?php echo Route::_('index.php?option=com_xdecaronotifications&task=notification.archive&id=' . (int) $item->id); ?>"
-                                    ><?php echo Text::_('COM_XDECARONOTIFICATIONS_ARCHIVE'); ?></button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+        <div data-xdecaro-live-content>
+            <?php if (!$this->items) : ?>
+                <div class="alert alert-info" role="status"><?php echo Text::_('COM_XDECARONOTIFICATIONS_NO_NOTIFICATIONS'); ?></div>
+            <?php else : ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <caption class="visually-hidden"><?php echo Text::_('COM_XDECARONOTIFICATIONS_NOTIFICATIONS'); ?></caption>
+                        <thead>
+                            <tr>
+                                <th scope="col"><?php echo Text::_('JGLOBAL_TITLE'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_RECIPIENT'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_CATEGORY'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></th>
+                                <th scope="col"><?php echo Text::_('JDATE'); ?></th>
+                                <th scope="col" class="text-end"><?php echo Text::_('COM_XDECARONOTIFICATIONS_ACTIONS'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($this->items as $item) : ?>
+                            <tr>
+                                <td>
+                                    <strong><?php echo htmlspecialchars((string) $item->title, ENT_QUOTES, 'UTF-8'); ?></strong>
+                                    <div class="small text-body-secondary mt-1"><?php echo nl2br(htmlspecialchars((string) $item->message, ENT_QUOTES, 'UTF-8')); ?></div>
+                                    <?php if ((string) $item->source_component !== '') : ?>
+                                        <div class="small text-body-secondary mt-1">
+                                            <?php echo Text::_('COM_XDECARONOTIFICATIONS_SOURCE'); ?>:
+                                            <?php echo htmlspecialchars(trim((string) $item->source_component . ' / ' . (string) $item->source_entity . ' / ' . (string) $item->source_id, ' /'), ENT_QUOTES, 'UTF-8'); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars((string) $item->recipient_type . ':' . (string) $item->recipient_id, ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><span class="badge bg-secondary"><?php echo htmlspecialchars((string) $item->category, ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper((string) $item->priority)); ?></td>
+                                <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper((string) $item->state)); ?></td>
+                                <td><?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC5')); ?></td>
+                                <td class="text-end text-nowrap">
+                                    <?php if ((string) $item->state === 'unread') : ?>
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-primary"
+                                            formaction="<?php echo Route::_('index.php?option=com_xdecaronotifications&task=notification.markRead&id=' . (int) $item->id); ?>"
+                                        ><?php echo Text::_('COM_XDECARONOTIFICATIONS_MARK_READ'); ?></button>
+                                    <?php endif; ?>
+                                    <?php if ((string) $item->state !== 'archived') : ?>
+                                        <button
+                                            type="submit"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            formaction="<?php echo Route::_('index.php?option=com_xdecaronotifications&task=notification.archive&id=' . (int) $item->id); ?>"
+                                        ><?php echo Text::_('COM_XDECARONOTIFICATIONS_ARCHIVE'); ?></button>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="d-flex justify-content-center">
-                <?php echo $this->pagination->getListFooter(); ?>
-            </div>
-        <?php endif; ?>
+                <div class="d-flex justify-content-center">
+                    <?php echo $this->pagination->getListFooter(); ?>
+                </div>
+            <?php endif; ?>
+        </div>
 
         <?php echo HTMLHelper::_('form.token'); ?>
     </form>
