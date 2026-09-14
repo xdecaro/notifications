@@ -30,6 +30,10 @@
     </files>
   </administration>
 
+  <media destination="com_xdecaronotifications" folder="media">
+    <folder>js</folder>
+  </media>
+
   <install>
     <sql>
       <file driver="mysql" charset="utf8">sql/install.mysql.utf8mb4.sql</file>
