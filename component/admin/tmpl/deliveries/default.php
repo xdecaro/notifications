@@ -1,6 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
@@ -8,8 +9,11 @@ use Joomla\CMS\Router\Route;
 $search  = (string) $this->state->get('filter.search');
 $state   = (string) $this->state->get('filter.state');
 $channel = (string) $this->state->get('filter.channel');
+
+HTMLHelper::_('script', 'com_xdecaronotifications/live-refresh.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
+$liveRefreshSeconds = max(5, min(300, (int) ComponentHelper::getParams('com_xdecaronotifications')->get('live_refresh_seconds', 10)));
 ?>
-<div class="xdecaro-scope">
+<div class="xdecaro-scope" data-xdecaro-live-refresh data-refresh-seconds="<?php echo $liveRefreshSeconds; ?>">
     <form action="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=deliveries'); ?>" method="post" id="adminForm" name="adminForm">
         <div class="xdecaro-card mb-3">
             <div class="row g-2 align-items-end">
