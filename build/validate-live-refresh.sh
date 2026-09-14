@@ -21,9 +21,11 @@ grep -qF '<media destination="com_xdecaronotifications" folder="media">' "$manif
 grep -qF 'document.hidden' "$script" || fail "live polling must pause when the browser tab is hidden"
 grep -qF 'setInterval' "$script" || fail "live polling interval is missing"
 grep -qF "searchParams.set('tmpl', 'component')" "$script" || fail "live polling must fetch component-only markup"
-grep -qF 'data-xdecaro-live-refresh' "$dashboard" || fail "dashboard is not live-refresh enabled"
-grep -qF 'data-xdecaro-live-refresh' "$notifications" || fail "notification center is not live-refresh enabled"
-grep -qF 'data-xdecaro-live-refresh' "$deliveries" || fail "deliveries screen is not live-refresh enabled"
+grep -qF "querySelector('[data-xdecaro-live-content]')" "$script" || fail "live polling must replace only the dynamic result region"
+for template in "$dashboard" "$notifications" "$deliveries"; do
+  grep -qF 'data-xdecaro-live-refresh' "$template" || fail "$template is not live-refresh enabled"
+  grep -qF 'data-xdecaro-live-content' "$template" || fail "$template has no isolated live content region"
+done
 
 grep -qF "class_exists('xdecaro\\\\Core\\\\Integration\\\\Capability')" "$info_model" || fail "Core diagnostic must use the canonical lowercase namespace"
 if grep -qF "Text::_('JACTIONS')" "$notifications"; then
