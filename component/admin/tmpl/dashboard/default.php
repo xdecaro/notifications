@@ -1,11 +1,15 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+
+HTMLHelper::_('script', 'com_xdecaronotifications/live-refresh.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
+$liveRefreshSeconds = max(5, min(300, (int) ComponentHelper::getParams('com_xdecaronotifications')->get('live_refresh_seconds', 10)));
 ?>
-<div class="xdecaro-scope">
+<div class="xdecaro-scope" data-xdecaro-live-refresh data-refresh-seconds="<?php echo $liveRefreshSeconds; ?>">
     <div class="row g-3 mb-4">
         <?php
         $cards = [
