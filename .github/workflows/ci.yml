@@ -34,6 +34,9 @@ jobs:
       - name: Validate diagnostic test notification contract
         run: bash build/validate-diagnostic-test-notification.sh
 
+      - name: Validate live refresh contract
+        run: bash build/validate-live-refresh.sh
+
       - name: Validate
         run: bash build/build.sh
 
