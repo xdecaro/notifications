@@ -18,6 +18,12 @@
   };
 
   roots.forEach((root) => {
+    const currentContent = root.querySelector('[data-xdecaro-live-content]');
+
+    if (!currentContent) {
+      return;
+    }
+
     const configured = Number.parseInt(root.dataset.refreshSeconds || '10', 10);
     const refreshSeconds = Number.isFinite(configured)
       ? Math.max(5, Math.min(300, configured))
@@ -51,9 +57,12 @@
         const html = await response.text();
         const nextDocument = new DOMParser().parseFromString(html, 'text/html');
         const nextRoot = nextDocument.querySelector('[data-xdecaro-live-refresh]');
+        const nextContent = nextRoot
+          ? nextRoot.querySelector('[data-xdecaro-live-content]')
+          : null;
 
-        if (nextRoot) {
-          root.innerHTML = nextRoot.innerHTML;
+        if (nextContent) {
+          currentContent.innerHTML = nextContent.innerHTML;
         }
       } catch (error) {
         // A transient polling failure must not interrupt the administrator UI.
