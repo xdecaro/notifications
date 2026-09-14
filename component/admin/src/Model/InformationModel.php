@@ -66,7 +66,7 @@ final class InformationModel extends BaseDatabaseModel
         try { $component = Factory::getApplication()->bootComponent('com_xdecaronotifications'); if ($component instanceof NotificationsComponent) { $channels = $component->getChannelRegistry()->getNames(); } } catch (Throwable $exception) { $channels = []; }
         return [
             'tables' => $tableStatus,
-            'core_available' => class_exists('Xdecaro\\Core\\Integration\\Capability'),
+            'core_available' => class_exists('xdecaro\\Core\\Integration\\Capability'),
             'channels' => $channels,
             'scheduler_plugin' => $this->extensionEnabled('plugin', 'xdecaronotifications', 'task'),
             'email_plugin' => $this->extensionEnabled('plugin', 'email', 'xdecaronotifications'),
