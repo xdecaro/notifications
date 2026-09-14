@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.0.5 — 2026-09-14
+
+### Live administrator refresh
+
+- Added configurable automatic refresh for Dashboard, Notifications and Deliveries, defaulting to 10 seconds.
+- Live refresh pauses when the browser tab is hidden and while a list filter is being edited, avoiding needless requests and interrupted input.
+- Added the browser refresh asset to the Joomla component media installation.
+- Corrected the Information diagnostics Core check to use the canonical lowercase `xdecaro\Core` namespace.
+- Replaced Joomla's placeholder-bearing `JACTIONS` table heading with a component-specific Actions label, fixing `Azioni per: %s` in Italian.
+- Added a CI contract guard and a non-destructive 1.0.5 schema marker; no stored notification data changes.
+
 ## 1.0.4 — 2026-09-14
 
 ### Diagnostics
