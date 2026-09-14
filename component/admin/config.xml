@@ -5,6 +5,10 @@
     <field name="max_attempts" type="number" label="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS" description="COM_XDECARONOTIFICATIONS_CONFIG_MAX_ATTEMPTS_DESC" default="5" min="1" max="50" filter="integer" />
   </fieldset>
 
+  <fieldset name="live" label="COM_XDECARONOTIFICATIONS_CONFIG_LIVE">
+    <field name="live_refresh_seconds" type="number" label="COM_XDECARONOTIFICATIONS_CONFIG_LIVE_REFRESH_SECONDS" description="COM_XDECARONOTIFICATIONS_CONFIG_LIVE_REFRESH_SECONDS_DESC" default="10" min="5" max="300" step="1" filter="integer" />
+  </fieldset>
+
   <fieldset name="maintenance" label="COM_XDECARONOTIFICATIONS_CONFIG_MAINTENANCE">
     <field name="archive_expired" type="radio" label="COM_XDECARONOTIFICATIONS_CONFIG_ARCHIVE_EXPIRED" description="COM_XDECARONOTIFICATIONS_CONFIG_ARCHIVE_EXPIRED_DESC" default="1" layout="joomla.form.field.radio.switcher" filter="integer">
       <option value="0">JNO</option>

@@ -1,6 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
@@ -8,8 +9,11 @@ use Joomla\CMS\Router\Route;
 $search  = (string) $this->state->get('filter.search');
 $state   = (string) $this->state->get('filter.state');
 $channel = (string) $this->state->get('filter.channel');
+
+HTMLHelper::_('script', 'com_xdecaronotifications/live-refresh.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
+$liveRefreshSeconds = max(5, min(300, (int) ComponentHelper::getParams('com_xdecaronotifications')->get('live_refresh_seconds', 10)));
 ?>
-<div class="xdecaro-scope">
+<div class="xdecaro-scope" data-xdecaro-live-refresh data-refresh-seconds="<?php echo $liveRefreshSeconds; ?>">
     <form action="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=deliveries'); ?>" method="post" id="adminForm" name="adminForm">
         <div class="xdecaro-card mb-3">
             <div class="row g-2 align-items-end">
@@ -36,43 +40,45 @@ $channel = (string) $this->state->get('filter.channel');
             </div>
         </div>
 
-        <?php if (!$this->items) : ?>
-            <div class="alert alert-info" role="status"><?php echo Text::_('COM_XDECARONOTIFICATIONS_NO_DELIVERIES'); ?></div>
-        <?php else : ?>
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <caption class="visually-hidden"><?php echo Text::_('COM_XDECARONOTIFICATIONS_DELIVERIES'); ?></caption>
-                    <thead>
-                        <tr>
-                            <th scope="col"><?php echo Text::_('JGLOBAL_TITLE'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_CHANNEL'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_ATTEMPTS'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_RECIPIENT'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_AVAILABLE_AT'); ?></th>
-                            <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_LAST_ERROR'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($this->items as $item) : ?>
-                        <tr>
-                            <td>
-                                <strong><?php echo htmlspecialchars((string) ($item->title ?? ('#' . $item->notification_id)), ENT_QUOTES, 'UTF-8'); ?></strong>
-                                <div class="small text-body-secondary">#<?php echo (int) $item->notification_id; ?> · <?php echo htmlspecialchars((string) $item->category, ENT_QUOTES, 'UTF-8'); ?></div>
-                            </td>
-                            <td><span class="badge bg-secondary"><?php echo htmlspecialchars((string) $item->channel, ENT_QUOTES, 'UTF-8'); ?></span></td>
-                            <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_DELIVERY_STATE_' . strtoupper((string) $item->state)); ?></td>
-                            <td><?php echo (int) $item->attempts; ?></td>
-                            <td><?php echo htmlspecialchars((string) $item->recipient_type . ':' . (string) $item->recipient_id, ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo HTMLHelper::_('date', $item->available_at, Text::_('DATE_FORMAT_LC5')); ?></td>
-                            <td class="small"><?php echo htmlspecialchars((string) $item->last_error, ENT_QUOTES, 'UTF-8'); ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="d-flex justify-content-center"><?php echo $this->pagination->getListFooter(); ?></div>
-        <?php endif; ?>
+        <div data-xdecaro-live-content>
+            <?php if (!$this->items) : ?>
+                <div class="alert alert-info" role="status"><?php echo Text::_('COM_XDECARONOTIFICATIONS_NO_DELIVERIES'); ?></div>
+            <?php else : ?>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <caption class="visually-hidden"><?php echo Text::_('COM_XDECARONOTIFICATIONS_DELIVERIES'); ?></caption>
+                        <thead>
+                            <tr>
+                                <th scope="col"><?php echo Text::_('JGLOBAL_TITLE'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_CHANNEL'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_ATTEMPTS'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_RECIPIENT'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_AVAILABLE_AT'); ?></th>
+                                <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_LAST_ERROR'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($this->items as $item) : ?>
+                            <tr>
+                                <td>
+                                    <strong><?php echo htmlspecialchars((string) ($item->title ?? ('#' . $item->notification_id)), ENT_QUOTES, 'UTF-8'); ?></strong>
+                                    <div class="small text-body-secondary">#<?php echo (int) $item->notification_id; ?> · <?php echo htmlspecialchars((string) $item->category, ENT_QUOTES, 'UTF-8'); ?></div>
+                                </td>
+                                <td><span class="badge bg-secondary"><?php echo htmlspecialchars((string) $item->channel, ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                <td><?php echo Text::_('COM_XDECARONOTIFICATIONS_DELIVERY_STATE_' . strtoupper((string) $item->state)); ?></td>
+                                <td><?php echo (int) $item->attempts; ?></td>
+                                <td><?php echo htmlspecialchars((string) $item->recipient_type . ':' . (string) $item->recipient_id, ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><?php echo HTMLHelper::_('date', $item->available_at, Text::_('DATE_FORMAT_LC5')); ?></td>
+                                <td class="small"><?php echo htmlspecialchars((string) $item->last_error, ENT_QUOTES, 'UTF-8'); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-center"><?php echo $this->pagination->getListFooter(); ?></div>
+            <?php endif; ?>
+        </div>
 
         <input type="hidden" name="task" value="">
         <?php echo HTMLHelper::_('form.token'); ?>
