@@ -3,6 +3,17 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.0.5</version>
+    <addition>
+      <item>Adds configurable automatic refresh for Dashboard, Notifications and Deliveries, defaulting to 10 seconds.</item>
+      <item>Pauses live refresh while the administrator tab is hidden or while a list filter is being edited.</item>
+      <item>Fixes the Core diagnostic to use the canonical lowercase xdecaro Core namespace.</item>
+      <item>Fixes the Notifications action-column label in Italian by avoiding Joomla's placeholder-bearing JACTIONS string.</item>
+    </addition>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.0.4</version>
     <addition>
       <item>Adds an administrator diagnostic action that creates a test notification for the current Joomla user.</item>
