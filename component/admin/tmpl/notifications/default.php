@@ -1,6 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
@@ -9,8 +10,11 @@ $search   = (string) $this->state->get('filter.search');
 $state    = (string) $this->state->get('filter.state');
 $priority = (string) $this->state->get('filter.priority');
 $category = (string) $this->state->get('filter.category');
+
+HTMLHelper::_('script', 'com_xdecaronotifications/live-refresh.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
+$liveRefreshSeconds = max(5, min(300, (int) ComponentHelper::getParams('com_xdecaronotifications')->get('live_refresh_seconds', 10)));
 ?>
-<div class="xdecaro-scope">
+<div class="xdecaro-scope" data-xdecaro-live-refresh data-refresh-seconds="<?php echo $liveRefreshSeconds; ?>">
     <form action="<?php echo Route::_('index.php?option=com_xdecaronotifications&view=notifications'); ?>" method="post" id="adminForm" name="adminForm">
         <input type="hidden" name="option" value="com_xdecaronotifications">
         <input type="hidden" name="view" value="notifications">
@@ -64,7 +68,7 @@ $category = (string) $this->state->get('filter.category');
                             <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY'); ?></th>
                             <th scope="col"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></th>
                             <th scope="col"><?php echo Text::_('JDATE'); ?></th>
-                            <th scope="col" class="text-end"><?php echo Text::_('JACTIONS'); ?></th>
+                            <th scope="col" class="text-end"><?php echo Text::_('COM_XDECARONOTIFICATIONS_ACTIONS'); ?></th>
                         </tr>
                     </thead>
                     <tbody>
