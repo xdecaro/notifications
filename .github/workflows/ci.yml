@@ -40,6 +40,9 @@ jobs:
       - name: Validate administrator notification bell contract
         run: bash build/validate-admin-bell.sh
 
+      - name: Validate Joomla 6.1.3 target contract
+        run: bash build/validate-joomla-target.sh
+
       - name: Validate
         run: bash build/build.sh
 
