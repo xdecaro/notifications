@@ -1,0 +1,2 @@
+-- Notifications 1.1.1
+-- Joomla 6.1.3-only target metadata/CI release. No database structure or stored data changes.

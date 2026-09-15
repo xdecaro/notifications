@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.1 — 2026-09-15
+
+### Joomla target
+
+- Set Joomla 6.1.3 as the exclusive supported CMS target for Notifications.
+- Removed Joomla 4.4.14 and Joomla 5.4.8 clean-install CI jobs and removed PHP 7.4 compatibility testing.
+- Raised the package update-feed minimum runtime to PHP 8.3.0, matching Joomla 6.1.3's `^8.3.0` requirement.
+- CI now validates PHP 8.3 and PHP 8.4 code/build compatibility and performs the full clean package-install test only on Joomla 6.1.3.
+- Added a release/CI contract guard preventing accidental reintroduction of Joomla 4/5 targets.
+- Added a non-destructive 1.1.1 component schema marker; no notification table or stored notification data changes.
+
 ## 1.1.0 — 2026-09-15
 
 ### Global administrator bell

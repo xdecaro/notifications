@@ -26,7 +26,9 @@ Use Joomla Scheduled Tasks for recurring queue and maintenance work. Do not crea
 
 ## Joomla and security
 
-Target Joomla 4, 5 and 6 where technically possible. Use namespaces, MVC, service providers, DI, ACL, CSRF protection, filtered input, escaped output, Language API and Web Asset Manager. Use `#__` for tables and preserve data on updates.
+Target Joomla 6.1.3 exclusively. Do not maintain or add compatibility code, CI jobs or release metadata for Joomla 4 or Joomla 5 unless the user explicitly asks for it. PHP 8.3.0 is the minimum runtime because Joomla 6.1.3 requires PHP `^8.3.0`.
+
+Use namespaces, MVC, service providers, DI, ACL, CSRF protection, filtered input, escaped output, Language API and Web Asset Manager. Use `#__` for tables and preserve data on updates.
 
 All administrator state-changing endpoints require server-side ACL and CSRF checks. Never use client-side state as authorization.
 
@@ -36,9 +38,9 @@ Reserved database namespace: `#__xdecaronotifications_*`. Do not rename existing
 
 ## Distribution
 
-Stable distribution is `pkg_xdecaronotifications`. It contains the component, Scheduled Tasks plugin and automatic email channel plugin. Every release must update VERSION, manifests, package manifest, update feed, changelog, tag/release and installable ZIPs. Never publish different files with the same version. Package updates must preserve administrator plugin-enabled/disabled choices.
+Stable distribution is `pkg_xdecaronotifications`. It contains the component, Scheduled Tasks plugin, automatic email channel plugin and administrator notification-bell module. Every release must update VERSION, manifests, package manifest, update feed, changelog, tag/release and installable ZIPs. Never publish different files with the same version. Package updates must preserve administrator plugin/module choices after first provisioning.
 
-Clean-install CI must validate the installable package on supported Joomla majors, not only PHP syntax or ZIP structure.
+Clean-install CI must validate the installable package on Joomla 6.1.3. Do not spend CI or implementation effort on Joomla 4/5 compatibility unless explicitly requested.
 
 ## UI
 
