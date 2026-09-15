@@ -4,17 +4,18 @@
   <packagename>xdecaronotifications</packagename>
   <author>Luca De Caro</author>
   <authorUrl>https://github.com/xdecaro/notifications</authorUrl>
-  <creationDate>2026-09-14</creationDate>
+  <creationDate>2026-09-15</creationDate>
   <copyright>Copyright (C) 2026 Luca De Caro</copyright>
   <license>GNU General Public License version 2 or later</license>
-  <version>1.0.5</version>
-  <description>Shared notification center, delivery worker and automatic email channel for the xdecaro Joomla ecosystem.</description>
+  <version>1.1.0</version>
+  <description>Shared notification center, global administrator bell, delivery worker and automatic email channel for the xdecaro Joomla ecosystem.</description>
   <blockChildUninstall>true</blockChildUninstall>
   <scriptfile>script.php</scriptfile>
   <files>
     <file type="component" id="com_xdecaronotifications">com_xdecaronotifications.zip</file>
     <file type="plugin" id="xdecaronotifications" group="task">plg_task_xdecaronotifications.zip</file>
     <file type="plugin" id="email" group="xdecaronotifications">plg_xdecaronotifications_email.zip</file>
+    <file type="module" id="mod_xdecaronotifications" client="administrator">mod_xdecaronotifications.zip</file>
   </files>
   <updateservers>
     <server type="extension" priority="1" name="Notifications by xdecaro Updates">https://raw.githubusercontent.com/xdecaro/notifications/main/updates/pkg_xdecaronotifications.xml</server>

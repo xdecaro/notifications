@@ -3,6 +3,17 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.0</version>
+    <addition>
+      <item>Adds a global Joomla administrator notification bell with current-user unread count and the five latest active notifications.</item>
+      <item>Adds a read-only authenticated bell.poll endpoint and 10-second near-real-time polling that pauses while the tab is hidden.</item>
+      <item>Adds the administrator bell module to the canonical package and provisions one status-position instance without overwriting later administrator choices.</item>
+      <item>Extends package build, release assets and Joomla 4/5/6 clean-install verification for the new administrator module.</item>
+    </addition>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.0.5</version>
     <addition>
       <item>Adds configurable automatic refresh for Dashboard, Notifications and Deliveries, defaulting to 10 seconds.</item>

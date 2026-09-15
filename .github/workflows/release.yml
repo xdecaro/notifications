@@ -47,6 +47,9 @@ jobs:
       - name: Validate canonical Core namespace
         run: bash build/validate-core-namespace.sh
 
+      - name: Validate administrator notification bell contract
+        run: bash build/validate-admin-bell.sh
+
       - name: Build and validate
         run: bash build/build.sh
 
@@ -74,10 +77,11 @@ jobs:
             "dist/com_xdecaronotifications_${VERSION}.zip" \
             "dist/plg_task_xdecaronotifications_${VERSION}.zip" \
             "dist/plg_xdecaronotifications_email_${VERSION}.zip" \
+            "dist/mod_xdecaronotifications_${VERSION}.zip" \
             "dist/pkg_xdecaronotifications_${VERSION}.zip" \
             dist/SHA256SUMS.txt \
             --title "Notifications by xdecaro ${VERSION}" \
-            --notes "Notifications by xdecaro ${VERSION}. Stable notification center with preferences, concurrency-safe delivery queue, scheduled workers, plugin-based delivery channels, automatic Joomla email delivery, diagnostics and optional Core integration."
+            --notes "Notifications by xdecaro ${VERSION}. Stable notification center with a global administrator bell, live current-user polling, preferences, concurrency-safe delivery queue, scheduled workers, plugin-based delivery channels, automatic Joomla email delivery, diagnostics and optional Core integration."
 
       - name: Publish update-feed checksum
         shell: bash
