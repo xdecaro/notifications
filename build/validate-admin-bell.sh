@@ -7,6 +7,7 @@ information_model="component/admin/src/Model/InformationModel.php"
 package="package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml"
 installer="package/pkg_xdecaronotifications/script.php"
 build="build/build.sh"
+version="$(tr -d '\r\n' < VERSION)"
 
 fail() {
   echo "Administrator notification bell contract failed: $1" >&2
@@ -20,7 +21,7 @@ fail() {
 [[ -f "$controller" ]] || fail "missing current-user bell poll controller"
 
 grep -qF 'client="administrator"' "$module/mod_xdecaronotifications.xml" || fail "module must target administrator client"
-grep -qF '<version>1.1.0</version>' "$module/mod_xdecaronotifications.xml" || fail "module manifest must be version 1.1.0"
+grep -qF "<version>${version}</version>" "$module/mod_xdecaronotifications.xml" || fail "module manifest must match VERSION (${version})"
 grep -qF "getUnreadCount('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService recipient query API"
 grep -qF 'bell.poll' "$module/tmpl/default.php" || fail "module layout must expose the bell.poll endpoint"
