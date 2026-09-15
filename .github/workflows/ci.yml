@@ -37,6 +37,9 @@ jobs:
       - name: Validate live refresh contract
         run: bash build/validate-live-refresh.sh
 
+      - name: Validate administrator notification bell contract
+        run: bash build/validate-admin-bell.sh
+
       - name: Validate
         run: bash build/build.sh
 
@@ -157,12 +160,20 @@ jobs:
           component_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='component' AND element='com_xdecaronotifications';")"
           task_enabled="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='task' AND element='xdecaronotifications' AND enabled=1;")"
           email_enabled="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='plugin' AND folder='xdecaronotifications' AND element='email' AND enabled=1;")"
+          module_extension_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_extensions WHERE type='module' AND element='mod_xdecaronotifications' AND client_id=1;")"
+          module_instance_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_modules WHERE module='mod_xdecaronotifications' AND client_id=1;")"
+          module_status_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_modules WHERE module='mod_xdecaronotifications' AND client_id=1 AND published=1 AND position='status';")"
+          module_all_pages_count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_modules_menu mm INNER JOIN ntf_modules m ON m.id=mm.moduleid WHERE m.module='mod_xdecaronotifications' AND m.client_id=1 AND mm.menuid=0;")"
 
-          echo "package=$package_count component=$component_count task_enabled=$task_enabled email_enabled=$email_enabled"
+          echo "package=$package_count component=$component_count task_enabled=$task_enabled email_enabled=$email_enabled module_extension=$module_extension_count module_instance=$module_instance_count module_status=$module_status_count module_all_pages=$module_all_pages_count"
           test "$package_count" = "1"
           test "$component_count" = "1"
           test "$task_enabled" = "1"
           test "$email_enabled" = "1"
+          test "$module_extension_count" = "1"
+          test "$module_instance_count" = "1"
+          test "$module_status_count" = "1"
+          test "$module_all_pages_count" = "1"
 
           for table in items preferences deliveries delivery_attempts; do
             count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='joomla' AND table_name='ntf_xdecaronotifications_${table}';")"

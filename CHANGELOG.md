@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.0 — 2026-09-15
+
+### Global administrator bell
+
+- Added `mod_xdecaronotifications`, a Joomla administrator status-bar bell that shows the signed-in user's unread count and five latest active notifications on every backend page.
+- Added a read-only `bell.poll` controller endpoint scoped to the authenticated administrator; callers cannot request another recipient.
+- Added 10-second near-real-time polling with hidden-tab pause/resume and DOM-only badge/dropdown updates.
+- The package provisions one published `status` module instance on first availability and marks it so later updates preserve administrator position/published choices.
+- Added the module to deterministic package builds, SHA-256 assets, release uploads and Joomla 4.4.14 / 5.4.8 / 6.1.3 clean-install verification.
+- Added a non-destructive 1.1.0 component schema marker; no notification table or stored notification data changes.
+
 ## 1.0.5 — 2026-09-14
 
 ### Live administrator refresh

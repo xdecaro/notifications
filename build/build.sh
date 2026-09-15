@@ -6,19 +6,20 @@ VERSION="$(tr -d '\r\n' < "$ROOT/VERSION")"
 COMPONENT="$ROOT/component"
 TASK_PLUGIN="$ROOT/plugins/task/xdecaronotifications"
 EMAIL_PLUGIN="$ROOT/plugins/xdecaronotifications/email"
+ADMIN_MODULE="$ROOT/modules/admin/xdecaronotifications"
 PACKAGE="$ROOT/package/pkg_xdecaronotifications"
 DIST="$ROOT/dist"
 
 command -v php >/dev/null 2>&1 || { echo "PHP CLI is required." >&2; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "Python 3 is required." >&2; exit 1; }
 
-for dir in "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$PACKAGE" "$ROOT/build"; do
+for dir in "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$ADMIN_MODULE" "$PACKAGE" "$ROOT/build"; do
   while IFS= read -r -d '' php_file; do
     php -l "$php_file" >/dev/null
   done < <(find "$dir" -type f -name '*.php' -print0)
 done
 
-if grep -R -nE --include='*.php' -- '->bind\([^,]+,[[:space:]]*\$[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$PACKAGE"; then
+if grep -R -nE --include='*.php' -- '->bind\([^,]+,[[:space:]]*\$[A-Za-z_][A-Za-z0-9_]*[[:space:]]*=' "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$ADMIN_MODULE" "$PACKAGE"; then
   echo "Inline assignment passed to DatabaseQuery::bind(); bind a declared variable instead." >&2
   exit 1
 fi
@@ -30,6 +31,7 @@ $files = [
   $root . "/component/xdecaronotifications.xml" => "component",
   $root . "/plugins/task/xdecaronotifications/xdecaronotifications.xml" => "task plugin",
   $root . "/plugins/xdecaronotifications/email/email.xml" => "email plugin",
+  $root . "/modules/admin/xdecaronotifications/mod_xdecaronotifications.xml" => "administrator bell module",
   $root . "/package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml" => "package",
   $root . "/updates/pkg_xdecaronotifications.xml" => "update feed",
   $root . "/updates/changelog.xml" => "changelog",
@@ -47,6 +49,7 @@ foreach ([
   $root . "/component/xdecaronotifications.xml",
   $root . "/plugins/task/xdecaronotifications/xdecaronotifications.xml",
   $root . "/plugins/xdecaronotifications/email/email.xml",
+  $root . "/modules/admin/xdecaronotifications/mod_xdecaronotifications.xml",
   $root . "/package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml",
 ] as $manifestFile) {
   $manifest = simplexml_load_file($manifestFile);
@@ -96,12 +99,12 @@ for table in \
   grep -q "$table" "$COMPONENT/admin/sql/install.mysql.utf8mb4.sql" || { echo "Missing expected table: $table" >&2; exit 1; }
 done
 
-if grep -R --line-number --fixed-strings '#__xdecaro_notifications' "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$PACKAGE"; then
+if grep -R --line-number --fixed-strings '#__xdecaro_notifications' "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$ADMIN_MODULE" "$PACKAGE"; then
   echo "Obsolete Notifications table namespace detected." >&2
   exit 1
 fi
 
-for update in 0.2.0 0.3.0 1.0.0; do
+for update in 0.2.0 0.3.0 1.0.0 1.0.1 1.0.2 1.0.3 1.0.4 1.0.5 1.1.0; do
   test -f "$COMPONENT/admin/sql/updates/mysql/${update}.sql" || { echo "Missing SQL update ${update}." >&2; exit 1; }
 done
 
@@ -141,11 +144,13 @@ def build_dir_zip(source, output):
 component_zip = dist / f'com_xdecaronotifications_{version}.zip'
 task_zip = dist / f'plg_task_xdecaronotifications_{version}.zip'
 email_zip = dist / f'plg_xdecaronotifications_email_{version}.zip'
+admin_module_zip = dist / f'mod_xdecaronotifications_{version}.zip'
 package_zip = dist / f'pkg_xdecaronotifications_{version}.zip'
 
 build_dir_zip(root / 'component', component_zip)
 build_dir_zip(root / 'plugins/task/xdecaronotifications', task_zip)
 build_dir_zip(root / 'plugins/xdecaronotifications/email', email_zip)
+build_dir_zip(root / 'modules/admin/xdecaronotifications', admin_module_zip)
 
 package_source = root / 'package/pkg_xdecaronotifications'
 with ZipFile(package_zip, 'w') as zf:
@@ -154,13 +159,15 @@ with ZipFile(package_zip, 'w') as zf:
     add_bytes(zf, 'com_xdecaronotifications.zip', component_zip.read_bytes())
     add_bytes(zf, 'plg_task_xdecaronotifications.zip', task_zip.read_bytes())
     add_bytes(zf, 'plg_xdecaronotifications_email.zip', email_zip.read_bytes())
+    add_bytes(zf, 'mod_xdecaronotifications.zip', admin_module_zip.read_bytes())
 
 required = {
     component_zip: {
         'xdecaronotifications.xml',
         'admin/services/provider.php',
         'admin/sql/install.mysql.utf8mb4.sql',
-        'admin/sql/updates/mysql/1.0.0.sql',
+        'admin/sql/updates/mysql/1.1.0.sql',
+        'admin/src/Controller/BellController.php',
         'admin/src/Event/RegisterChannelsEvent.php',
         'admin/src/Service/ChannelDiscoveryService.php',
         'admin/src/Service/MaintenanceService.php',
@@ -179,12 +186,21 @@ required = {
         'services/provider.php',
         'src/Extension/Email.php',
     },
+    admin_module_zip: {
+        'mod_xdecaronotifications.php',
+        'mod_xdecaronotifications.xml',
+        'tmpl/default.php',
+        'media/js/admin-bell.js',
+        'language/en-GB/mod_xdecaronotifications.ini',
+        'language/it-IT/mod_xdecaronotifications.ini',
+    },
     package_zip: {
         'pkg_xdecaronotifications.xml',
         'script.php',
         'com_xdecaronotifications.zip',
         'plg_task_xdecaronotifications.zip',
         'plg_xdecaronotifications_email.zip',
+        'mod_xdecaronotifications.zip',
     },
 }
 
@@ -198,7 +214,7 @@ for archive, expected in required.items():
         if bad:
             raise SystemExit(f'Corrupt ZIP entry in {archive.name}: {bad}')
 
-assets = [component_zip, task_zip, email_zip, package_zip]
+assets = [component_zip, task_zip, email_zip, admin_module_zip, package_zip]
 lines = []
 for asset in assets:
     lines.append(f'{hashlib.sha256(asset.read_bytes()).hexdigest()}  {asset.name}')

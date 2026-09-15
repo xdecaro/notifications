@@ -29,6 +29,7 @@ final class InformationModel extends BaseDatabaseModel
             $this->extensionRow('component', 'com_xdecaronotifications', '', 'com_xdecaronotifications'),
             $this->extensionRow('plugin', 'xdecaronotifications', 'task', 'plg_task_xdecaronotifications'),
             $this->extensionRow('plugin', 'email', 'xdecaronotifications', 'plg_xdecaronotifications_email'),
+            $this->extensionRow('module', 'mod_xdecaronotifications', '', 'mod_xdecaronotifications'),
         ];
     }
 
