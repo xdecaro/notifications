@@ -37,6 +37,9 @@ jobs:
       - name: Validate live refresh contract
         run: bash build/validate-live-refresh.sh
 
+      - name: Validate administrator notification bell contract
+        run: bash build/validate-admin-bell.sh
+
       - name: Validate
         run: bash build/build.sh
 
