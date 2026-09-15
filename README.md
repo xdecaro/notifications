@@ -12,10 +12,11 @@ Technical identity:
 - component: `com_xdecaronotifications`
 - Scheduled Tasks plugin: `plg_task_xdecaronotifications`
 - email channel plugin: `plg_xdecaronotifications_email`
+- administrator bell module: `mod_xdecaronotifications`
 - PHP namespace: `Xdecaro\Component\Notifications`
 - database namespace: `#__xdecaronotifications_*`
 
-Install `pkg_xdecaronotifications_<version>.zip` for the complete supported product. The package enables its included task and email plugins only on first install/discovery; later updates preserve the administrator's enabled/disabled choices. The package deliberately does not create schedules on the administrator's behalf.
+Install `pkg_xdecaronotifications_<version>.zip` for the complete supported product. The package enables its included task and email plugins only on first install/discovery and provisions the administrator bell module in the `status` position; later updates preserve administrator choices. The package deliberately does not create Scheduler schedules on the administrator's behalf.
 
 ## Public capabilities
 
@@ -119,6 +120,7 @@ Notifications does not scan Documents, Membership, Finance or other private prod
 
 The component provides:
 
+- a global administrator bell in Joomla's status bar with unread count and the five latest active notifications;
 - Dashboard with notification and delivery-health counters;
 - Notifications center with search, filters, pagination, mark-read and archive;
 - Deliveries with queue state, attempts, channel and last error;
@@ -126,7 +128,7 @@ The component provides:
 - Information with Product + Environment, Included extensions + Updates, Connected components and Diagnostics;
 - component settings for queue limits and maintenance retention.
 
-UI uses Xdecaro Core shared assets when available and safe Joomla fallback otherwise.
+The bell and notification administration screens use near-real-time polling and pause unnecessary polling while the browser tab is hidden. UI uses Xdecaro Core shared assets when available and safe Joomla fallback otherwise.
 
 ## Boundaries
 
@@ -140,4 +142,6 @@ Stable 1.0 intentionally does not duplicate other products:
 
 ## Compatibility and release
 
-Target Joomla 4, 5 and 6 where the installed Joomla/PHP combination supports them. CI validates PHP 7.4 and PHP 8.3 syntax/build compatibility and performs clean package installation smoke tests on Joomla 4.4.14, 5.4.8 and 6.1.3. Releases are deterministic and publish component, plugin and package ZIPs plus SHA-256 checksums. The Joomla update channel is `updates/pkg_xdecaronotifications.xml`.
+Joomla 6.1.3 only. PHP 8.3.0 or newer is required. Joomla 4 and Joomla 5 are intentionally outside the supported target and are not considered when implementing or testing new Notifications changes.
+
+CI validates the current code on PHP 8.3 and PHP 8.4 and performs a clean installation of the complete package on Joomla 6.1.3. Releases are deterministic and publish component, task plugin, email plugin, administrator module and package ZIPs plus SHA-256 checksums. The Joomla update channel is `updates/pkg_xdecaronotifications.xml`.

@@ -13,6 +13,8 @@ DIST="$ROOT/dist"
 command -v php >/dev/null 2>&1 || { echo "PHP CLI is required." >&2; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "Python 3 is required." >&2; exit 1; }
 
+bash "$ROOT/build/validate-joomla-target.sh"
+
 for dir in "$COMPONENT" "$TASK_PLUGIN" "$EMAIL_PLUGIN" "$ADMIN_MODULE" "$PACKAGE" "$ROOT/build"; do
   while IFS= read -r -d '' php_file; do
     php -l "$php_file" >/dev/null
@@ -104,7 +106,7 @@ if grep -R --line-number --fixed-strings '#__xdecaro_notifications' "$COMPONENT"
   exit 1
 fi
 
-for update in 0.2.0 0.3.0 1.0.0 1.0.1 1.0.2 1.0.3 1.0.4 1.0.5 1.1.0; do
+for update in 0.2.0 0.3.0 1.0.0 1.0.1 1.0.2 1.0.3 1.0.4 1.0.5 1.1.0 1.1.1; do
   test -f "$COMPONENT/admin/sql/updates/mysql/${update}.sql" || { echo "Missing SQL update ${update}." >&2; exit 1; }
 done
 
@@ -166,7 +168,7 @@ required = {
         'xdecaronotifications.xml',
         'admin/services/provider.php',
         'admin/sql/install.mysql.utf8mb4.sql',
-        'admin/sql/updates/mysql/1.1.0.sql',
+        'admin/sql/updates/mysql/1.1.1.sql',
         'admin/src/Controller/BellController.php',
         'admin/src/Event/RegisterChannelsEvent.php',
         'admin/src/Service/ChannelDiscoveryService.php',

@@ -11,7 +11,7 @@ jobs:
   build:
     strategy:
       matrix:
-        php: ['7.4', '8.3']
+        php: ['8.3', '8.4']
     runs-on: ubuntu-latest
 
     steps:
@@ -63,12 +63,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - joomla: '4.4.14'
-            php: '8.2'
-            sha256: 'a1877816e070fa087529afcd73f214b7d5d76964d3ede0c3e6dfd354baad27b8'
-          - joomla: '5.4.8'
-            php: '8.3'
-            sha256: '8d3585939bca8e6b1d5f3e97dda2cc557c61e610daf488c871e1f62a97be9bd0'
           - joomla: '6.1.3'
             php: '8.3'
             sha256: 'a49305652503f9344d046d55471f324a07882996132ed967c3b0fe34707ae4a1'
