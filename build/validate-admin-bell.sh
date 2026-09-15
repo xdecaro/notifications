@@ -3,6 +3,7 @@ set -euo pipefail
 
 module="modules/admin/xdecaronotifications"
 controller="component/admin/src/Controller/BellController.php"
+information_model="component/admin/src/Model/InformationModel.php"
 package="package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml"
 installer="package/pkg_xdecaronotifications/script.php"
 build="build/build.sh"
@@ -37,6 +38,7 @@ if grep -qF '#__xdecaronotifications_' "$controller" "$module/mod_xdecaronotific
   fail "bell surfaces must not query Notifications tables directly"
 fi
 
+grep -qF "extensionRow('module', 'mod_xdecaronotifications'" "$information_model" || fail "Information page must list the bundled administrator bell module"
 grep -qF 'mod_xdecaronotifications.zip' "$package" || fail "package manifest does not include administrator bell module"
 grep -qF 'mod_xdecaronotifications' "$installer" || fail "package installer does not provision the administrator module instance"
 grep -qF "'status'" "$installer" || fail "administrator module instance must use status position"
