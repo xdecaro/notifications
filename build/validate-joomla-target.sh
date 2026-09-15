@@ -28,7 +28,7 @@ grep -qF "<version>${version}</version>" plugins/xdecaronotifications/email/emai
 grep -qF "<version>${version}</version>" modules/admin/xdecaronotifications/mod_xdecaronotifications.xml || fail "administrator module manifest must match VERSION (${version})"
 grep -qF "<version>${version}</version>" package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml || fail "package manifest must match VERSION (${version})"
 grep -qF "<version>${version}</version>" updates/pkg_xdecaronotifications.xml || fail "update feed must match VERSION (${version})"
-grep -qF '<targetplatform name="joomla" version="6\.1\.3" />' updates/pkg_xdecaronotifications.xml || fail "update feed must target Joomla 6.1.3 only"
+grep -qF '<targetplatform name="joomla" version="6\.1\.3$" />' updates/pkg_xdecaronotifications.xml || fail "update feed must target exactly Joomla 6.1.3"
 grep -qF '<php_minimum>8.3.0</php_minimum>' updates/pkg_xdecaronotifications.xml || fail "update feed must require PHP 8.3.0 or newer"
 
 test -f "component/admin/sql/updates/mysql/${version}.sql" || fail "missing ${version} schema marker"

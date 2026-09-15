@@ -15,7 +15,7 @@
     <maintainer>Luca De Caro</maintainer>
     <maintainerurl>https://github.com/xdecaro/notifications</maintainerurl>
     <changelogurl>https://raw.githubusercontent.com/xdecaro/notifications/main/updates/changelog.xml</changelogurl>
-    <targetplatform name="joomla" version="6\.1\.3" />
+    <targetplatform name="joomla" version="6\.1\.3$" />
     <php_minimum>8.3.0</php_minimum>
   </update>
 </updates>
