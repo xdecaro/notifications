@@ -30,8 +30,8 @@ grep -qF 'setInterval' "$module/media/js/admin-bell.js" || fail "polling interva
 grep -qF 'document.hidden' "$module/media/js/admin-bell.js" || fail "polling must pause while the tab is hidden"
 grep -qF '10000' "$module/media/js/admin-bell.js" || fail "default poll cadence must be 10 seconds"
 grep -qF 'icon-bell' "$module/tmpl/default.php" || fail "bell icon markup is missing"
-grep -qF '<div class="header-item-icon">' "$module/tmpl/default.php" || fail "bell icon must use Joomla header-item-icon wrapper markup"
-grep -qF '<div class="w-auto">' "$module/tmpl/default.php" || fail "bell icon and unread count must share one Joomla icon circle"
+grep -qF '<span class="position-relative">' "$module/tmpl/default.php" || fail "bell icon must have one relative positioning wrapper"
+grep -qF 'position-absolute top-0 start-100 translate-middle badge rounded-pill' "$module/tmpl/default.php" || fail "unread count must be a compact badge over the bell"
 grep -qF 'dropdown-menu' "$module/tmpl/default.php" || fail "bell dropdown markup is missing"
 
 grep -qF "core.login.admin" "$controller" || fail "bell endpoint must require administrator login authorization"
