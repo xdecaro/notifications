@@ -31,8 +31,13 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
         aria-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_TITLE'), ENT_QUOTES, 'UTF-8'); ?>"
     >
         <span class="header-item-icon">
-            <span class="icon-bell" aria-hidden="true"></span>
-            <small class="header-item-count" data-xdecaro-bell-count<?php echo $countUnread < 1 ? ' hidden' : ''; ?>><?php echo (int) $countUnread; ?></small>
+            <span class="position-relative">
+                <span class="icon-bell icon-fw" aria-hidden="true"></span>
+                <small
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    data-xdecaro-bell-count<?php echo $countUnread < 1 ? ' hidden' : ''; ?>
+                ><?php echo (int) $countUnread; ?></small>
+            </span>
         </span>
         <span class="header-item-text"><?php echo Text::_('MOD_XDECARONOTIFICATIONS_TITLE'); ?></span>
         <span class="icon-angle-down" aria-hidden="true"></span>
