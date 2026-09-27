@@ -51,7 +51,7 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
 
         <div data-xdecaro-bell-items>
             <?php if (!$items) : ?>
-                <div class="dropdown-item-text text-body-secondary"><?php echo Text::_('MOD_XDECARONOTIFICATIONS_EMPTY'); ?></div>
+                <div class="dropdown-item-text text-white opacity-75"><?php echo Text::_('MOD_XDECARONOTIFICATIONS_EMPTY'); ?></div>
             <?php else : ?>
                 <?php foreach ($items as $item) : ?>
                     <?php
@@ -66,8 +66,8 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
                         <div class="dropdown-item-text py-2">
                     <?php endif; ?>
                             <div class="fw-semibold text-wrap"><?php echo htmlspecialchars((string) ($item['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="small text-body-secondary text-wrap"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="small text-body-secondary mt-1">
+                            <div class="small text-white opacity-75 text-wrap"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                            <div class="small text-white opacity-75 mt-1">
                                 <?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper($priority)); ?>
                                 · <?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper($state)); ?>
                                 <?php if ($created !== '') : ?>
