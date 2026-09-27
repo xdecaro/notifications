@@ -21,9 +21,52 @@
   text-align: left;
 }
 
+.xdecaro-notifications-footer {
+  border-top: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  padding: 0.5rem 0.75rem;
+}
+
+.xdecaro-notifications-footer-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: auto;
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.25;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.xdecaro-notifications-footer-action:hover,
+.xdecaro-notifications-footer-action:focus-visible {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  text-decoration: none;
+}
+
+.xdecaro-notifications-footer-action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 @media (max-width: 575.98px) {
   .xdecaro-notification-row {
     grid-template-columns: 1fr;
     gap: 0.25rem;
+  }
+
+  .xdecaro-notifications-footer {
+    gap: 0.25rem !important;
+    padding-inline: 0.5rem;
+  }
+
+  .xdecaro-notifications-footer-action {
+    padding-inline: 0.35rem;
   }
 }
