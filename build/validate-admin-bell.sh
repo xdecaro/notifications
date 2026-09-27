@@ -33,6 +33,10 @@ grep -qF 'icon-bell' "$module/tmpl/default.php" || fail "bell icon markup is mis
 grep -qF '<span class="position-relative">' "$module/tmpl/default.php" || fail "bell icon must have one relative positioning wrapper"
 grep -qF 'position-absolute top-0 start-100 translate-middle badge rounded-pill' "$module/tmpl/default.php" || fail "unread count must be a compact badge over the bell"
 grep -qF 'dropdown-menu' "$module/tmpl/default.php" || fail "bell dropdown markup is missing"
+if grep -qF 'text-body-secondary' "$module/tmpl/default.php"; then
+  fail "bell dropdown secondary text must not inherit the light body color inside Atum's dark header dropdown"
+fi
+grep -qF 'text-white opacity-75' "$module/tmpl/default.php" || fail "bell dropdown secondary text must keep readable contrast in both light and dark administrator modes"
 
 grep -qF "core.login.admin" "$controller" || fail "bell endpoint must require administrator login authorization"
 grep -qF "getUnreadCount('user'" "$controller" || fail "bell endpoint must use NotificationService unread-count API"
