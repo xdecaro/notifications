@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.9 — 2026-09-28
+
+### Administrator bell footer theme contrast
+
+- Fixed the notification footer actions becoming white-on-white in Joomla administrator Light Mode.
+- The footer now uses Joomla Atum's theme-aware `--body-bg` and `--body-color` variables, so background, text and icons automatically follow Light/Dark mode.
+- The footer separator now derives from `--body-color` instead of inherited header text color, preserving visible contrast in both themes.
+- Hover and keyboard-focus states also derive from the active Joomla theme color instead of inheriting the status-bar color.
+- Added CI regression checks that reject inherited footer text colors and require the theme-aware Joomla variables.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.8 — 2026-09-27
 
 ### Administrator bell footer
@@ -32,7 +43,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 
 - Reserved a fixed 120px first column for notification titles inside the 500px administrator bell dropdown.
 - Kept message content flexible in the middle column and priority/state/date metadata aligned in a dedicated third column.
-- Applied the same row layout to the 10-second JavaScript live refresh so the first column does not collapse after polling.
+- Applied the same three-column layout to the 10-second JavaScript live refresh so the first column does not collapse after polling.
 - Added a narrow-screen fallback that stacks each notification vertically and a dedicated module stylesheet installed with the administrator module.
 - Added CI regression checks for the 120px desktop title column, live-rendered rows and mobile stacking behavior.
 - No notification logic, database structure or stored notification data changes.
@@ -142,7 +153,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 
 - Migrated new Core references to the canonical lowercase `xdecaro\Core` namespace.
 - Added optional Core 1.4 `CapabilityRegistry` registration for all public Notifications capabilities.
-- Exposed `CoreIntegrationService` from the booted Notifications component so other xdecaro products can discover capabilities without reading private tables.
+- Exposed `CoreIntegrationService` from the booted component so other xdecaro products can discover capabilities without reading private tables.
 - Kept Core optional: Notifications continues to work when Core or the 1.4 registry is unavailable.
 - Added a non-destructive 1.0.1 component schema marker; no database structure or stored notification data changes.
 
