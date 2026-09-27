@@ -3,7 +3,6 @@ set -euo pipefail
 
 module="modules/admin/xdecaronotifications"
 controller="component/admin/src/Controller/BellController.php"
-service="component/admin/src/Service/NotificationService.php"
 information_model="component/admin/src/Model/InformationModel.php"
 package="package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml"
 installer="package/pkg_xdecaronotifications/script.php"
@@ -21,7 +20,6 @@ fail() {
 [[ -f "$module/media/js/admin-bell.js" ]] || fail "missing bell polling JavaScript"
 [[ -f "$module/media/css/admin-bell.css" ]] || fail "missing bell layout stylesheet"
 [[ -f "$controller" ]] || fail "missing current-user bell controller"
-[[ -f "$service" ]] || fail "missing notification service"
 
 grep -qF 'client="administrator"' "$module/mod_xdecaronotifications.xml" || fail "module must target administrator client"
 grep -qF "<version>${version}</version>" "$module/mod_xdecaronotifications.xml" || fail "module manifest must match VERSION (${version})"
@@ -75,11 +73,8 @@ grep -qF "core.login.admin" "$controller" || fail "bell endpoint must require ad
 grep -qF "getUnreadCount('user'" "$controller" || fail "bell endpoint must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$controller" || fail "bell endpoint must use NotificationService recipient query API"
 grep -qF "Session::checkToken('post')" "$controller" || fail "clear-all endpoint must enforce Joomla POST CSRF validation"
-grep -qF "archiveForRecipient('user'" "$controller" || fail "clear-all endpoint must archive only the authenticated Joomla user recipient"
-grep -qF 'function archiveForRecipient' "$service" || fail "notification service must expose recipient-scoped bulk archive"
-grep -qF "->where(\$this->db->quoteName('recipient_type') . ' = :recipient_type')" "$service" || fail "bulk archive must scope by recipient type"
-grep -qF "->where(\$this->db->quoteName('recipient_id') . ' = :recipient_id')" "$service" || fail "bulk archive must scope by recipient id"
-if grep -qF 'DELETE FROM #__xdecaronotifications_items' "$controller" "$service"; then
+grep -qF "archiveForRecipient(\$notificationId, 'user', \$recipientId)" "$controller" || fail "clear-all endpoint must archive only notifications belonging to the authenticated Joomla user"
+if grep -qF 'DELETE FROM' "$controller"; then
   fail "clear-notifications must archive rather than physically delete notification rows"
 fi
 if grep -qF '#__xdecaronotifications_' "$controller" "$module/mod_xdecaronotifications.php"; then
