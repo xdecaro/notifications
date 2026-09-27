@@ -3,6 +3,17 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.4</version>
+    <change>
+      <item>Fixes the live 10-second administrator bell refresh so it no longer restores dark secondary text inside Atum's dark header dropdown.</item>
+      <item>Keeps live-rendered notification messages, metadata and empty-state text readable with white text at reduced opacity.</item>
+      <item>Adds a CI regression guard covering both the initial PHP render and the JavaScript live renderer.</item>
+      <item>No notification logic, database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.3</version>
     <change>
       <item>Fixes low-contrast secondary text in the administrator notification dropdown when Joomla is in light mode.</item>

@@ -1,0 +1,2 @@
+-- Notifications 1.1.4
+-- Live administrator bell refresh contrast fix. No database structure or stored data changes.

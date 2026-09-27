@@ -2,6 +2,15 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.4 — 2026-09-27
+
+### Live administrator bell contrast
+
+- Fixed the 10-second bell polling renderer so it no longer replaces readable light secondary text with Bootstrap `text-body-secondary` inside Atum's dark header dropdown.
+- Live-rendered notification messages, metadata and the empty state now use the same white reduced-opacity treatment as the initial PHP render.
+- Added a CI regression check covering both the initial layout and the JavaScript live renderer.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.3 — 2026-09-27
 
 ### Administrator bell contrast
@@ -38,7 +47,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 ### Global administrator bell
 
 - Added `mod_xdecaronotifications`, a Joomla administrator status-bar bell that shows the signed-in user's unread count and five latest active notifications on every backend page.
-- Added a read-only `bell.poll` controller endpoint scoped to the authenticated administrator; callers cannot request another recipient.
+- Added a read-only authenticated bell.poll endpoint scoped to the authenticated administrator; callers cannot request another recipient.
 - Added 10-second near-real-time polling with hidden-tab pause/resume and DOM-only badge/dropdown updates.
 - The package provisions one published `status` module instance on first availability and marks it so later updates preserve administrator position/published choices.
 - Added the module to deterministic package builds, SHA-256 assets, release uploads and Joomla 4.4.14 / 5.4.8 / 6.1.3 clean-install verification.
@@ -49,7 +58,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 ### Live administrator refresh
 
 - Added configurable automatic refresh for Dashboard, Notifications and Deliveries, defaulting to 10 seconds.
-- Live refresh pauses when the browser tab is hidden and while a list filter is being edited, avoiding needless requests and interrupted input.
+- Live refresh pauses while the administrator tab is hidden or while a list filter is being edited, avoiding needless requests and interrupted input.
 - Added the browser refresh asset to the Joomla component media installation.
 - Corrected the Information diagnostics Core check to use the canonical lowercase `xdecaro\Core` namespace.
 - Replaced Joomla's placeholder-bearing `JACTIONS` table heading with a component-specific Actions label, fixing `Azioni per: %s` in Italian.
@@ -102,9 +111,9 @@ All notable changes to **Notifications by xdecaro** are documented here.
 - Read/unread/archive state, priorities, categories, actions and notification expiry.
 - Recipient/category/channel preferences and public preference API.
 - Concurrency-safe delivery queue with atomic claims, retry scheduling, maximum attempts, stale-claim recovery and immutable attempt history.
-- Native `in_app` delivery and public delivery-channel contract.
+- Native in-app delivery and public delivery-channel contract.
 - Automatic discovery of optional channel plugins through a Joomla event.
-- Included automatic email channel using Joomla mail configuration and Joomla user resolution.
+- Included automatic email delivery using Joomla mail configuration and Joomla user resolution.
 - Included Joomla Scheduled Tasks routines for delivery processing and maintenance.
 - Maintenance for expired Notifications records and configurable attempt-history retention.
 - Administrator Dashboard, Notifications, Deliveries, Preferences and standard Information/Diagnostics screens.
