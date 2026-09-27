@@ -48,21 +48,23 @@
       items.forEach((item) => {
         const actionUrl = typeof item.action_url === 'string' ? item.action_url : '';
         const wrapper = document.createElement(actionUrl ? 'a' : 'div');
-        wrapper.className = actionUrl ? 'dropdown-item py-2' : 'dropdown-item-text py-2';
+        wrapper.className = actionUrl
+          ? 'dropdown-item py-2 xdecaro-notification-row'
+          : 'dropdown-item-text py-2 xdecaro-notification-row';
 
         if (actionUrl) {
           wrapper.setAttribute('href', actionUrl);
         }
 
-        appendText(wrapper, 'fw-semibold text-wrap', item.title);
-        appendText(wrapper, 'small text-white opacity-75 text-wrap', item.message);
+        appendText(wrapper, 'fw-semibold text-wrap xdecaro-notification-title', item.title);
+        appendText(wrapper, 'small text-white opacity-75 text-wrap xdecaro-notification-message', item.message);
 
         const metadata = [item.priority_label, item.state_label, item.created_label]
           .filter((value) => typeof value === 'string' && value !== '')
           .join(' · ');
 
         if (metadata) {
-          appendText(wrapper, 'small text-white opacity-75 mt-1', metadata);
+          appendText(wrapper, 'small text-white opacity-75 xdecaro-notification-meta', metadata);
         }
 
         itemsRoot.appendChild(wrapper);
