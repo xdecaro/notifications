@@ -9,6 +9,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Joomla\CMS\Session\Session;
 use RuntimeException;
 use Xdecaro\Component\Notifications\Administrator\Extension\NotificationsComponent;
 
@@ -60,6 +61,49 @@ final class BellController extends BaseController
         echo new JsonResponse([
             'unread' => $service->getUnreadCount('user', $recipientId),
             'items' => $safeItems,
+        ]);
+
+        $app->close();
+    }
+
+    public function archiveAll(): void
+    {
+        $app = Factory::getApplication();
+        $user = $app->getIdentity();
+        $userId = (int) ($user->id ?? 0);
+
+        if ($userId < 1 || !$user->authorise('core.login.admin')) {
+            throw new NotAllowed(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+        }
+
+        if (!Session::checkToken('post')) {
+            throw new RuntimeException(Text::_('JINVALID_TOKEN'), 403);
+        }
+
+        $service = $this->getNotificationsComponent()->getNotificationService();
+        $recipientId = (string) $userId;
+        $archived = 0;
+
+        do {
+            $items = $service->getForRecipient('user', $recipientId, [
+                'state' => ['unread', 'read'],
+                'include_expired' => true,
+                'limit' => 100,
+            ]);
+
+            foreach ($items as $item) {
+                $notificationId = (int) ($item['id'] ?? 0);
+
+                if ($notificationId > 0 && $service->archiveForRecipient($notificationId, 'user', $recipientId)) {
+                    $archived++;
+                }
+            }
+        } while (count($items) === 100);
+
+        echo new JsonResponse([
+            'archived' => $archived,
+            'unread' => 0,
+            'items' => [],
         ]);
 
         $app->close();
