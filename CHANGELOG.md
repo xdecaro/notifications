@@ -2,6 +2,18 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.8 — 2026-09-27
+
+### Administrator bell footer
+
+- Removed the wide Bootstrap divider band below the notification list and replaced it with a single subtle separator derived from the current text color, so the line keeps appropriate contrast across light and dark administrator modes.
+- Added a right-aligned **Clear notifications** action beside **Open notification center**.
+- The clear action asks for explicit confirmation and submits a Joomla CSRF-protected POST request.
+- Clearing the bell archives only unread/read notifications belonging to the currently authenticated Joomla administrator; notification rows are never physically deleted.
+- The action archives in recipient-scoped batches and immediately refreshes the badge and dropdown to the empty state without reloading the administrator page.
+- Added Italian and English labels plus CI regression checks for the adaptive separator, confirmation flow, CSRF protection and recipient-scoped archive behavior.
+- No database structure or stored notification data format changes.
+
 ## 1.1.7 — 2026-09-27
 
 ### Administrator bell row layout
