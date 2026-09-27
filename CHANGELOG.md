@@ -2,6 +2,15 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.5 — 2026-09-27
+
+### Administrator bell width
+
+- Increased the administrator notification dropdown width to 500px on desktop so notification titles, messages and metadata wrap less aggressively.
+- Added a viewport-safe maximum width of `calc(100vw - 24px)` so the dropdown remains usable on narrow screens.
+- Added a CI regression guard for the dedicated dropdown class and the 500px responsive width contract.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.4 — 2026-09-27
 
 ### Live administrator bell contrast
@@ -47,7 +56,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 ### Global administrator bell
 
 - Added `mod_xdecaronotifications`, a Joomla administrator status-bar bell that shows the signed-in user's unread count and five latest active notifications on every backend page.
-- Added a read-only authenticated bell.poll endpoint scoped to the authenticated administrator; callers cannot request another recipient.
+- Added a read-only authenticated bell.poll controller endpoint scoped to the authenticated administrator; callers cannot request another recipient.
 - Added 10-second near-real-time polling with hidden-tab pause/resume and DOM-only badge/dropdown updates.
 - The package provisions one published `status` module instance on first availability and marks it so later updates preserve administrator position/published choices.
 - Added the module to deterministic package builds, SHA-256 assets, release uploads and Joomla 4.4.14 / 5.4.8 / 6.1.3 clean-install verification.
@@ -100,7 +109,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 - Added optional Core 1.4 `CapabilityRegistry` registration for all public Notifications capabilities.
 - Exposed `CoreIntegrationService` from the booted Notifications component so other xdecaro products can discover capabilities without reading private tables.
 - Kept Core optional: Notifications continues to work when Core or the 1.4 registry is unavailable.
-- Added a non-destructive 1.0.1 schema marker; no database structure or stored notification data changes.
+- Added a non-destructive 1.0.1 component schema marker; no database structure or stored notification data changes.
 
 ## 1.0.0 — 2026-09-09
 

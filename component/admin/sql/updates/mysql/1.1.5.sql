@@ -1,0 +1,2 @@
+-- Notifications 1.1.5
+-- Administrator bell dropdown width adjustment. No database structure or stored data changes.

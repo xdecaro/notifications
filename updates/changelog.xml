@@ -3,6 +3,17 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.5</version>
+    <change>
+      <item>Increases the administrator notification dropdown width to 500px on desktop so notification content wraps less aggressively.</item>
+      <item>Keeps the dropdown viewport-safe with a maximum width of calc(100vw - 24px) on narrow screens.</item>
+      <item>Adds a CI regression guard for the dedicated dropdown class and responsive 500px width contract.</item>
+      <item>No notification logic, database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.4</version>
     <change>
       <item>Fixes the live 10-second administrator bell refresh so it no longer restores dark secondary text inside Atum's dark header dropdown.</item>
