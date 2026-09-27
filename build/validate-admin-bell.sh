@@ -63,7 +63,12 @@ fi
 grep -qF 'text-white opacity-75' "$module/media/js/admin-bell.js" || fail "live bell refresh must preserve readable secondary text contrast"
 
 grep -qF 'xdecaro-notifications-footer' "$module/tmpl/default.php" || fail "bell dropdown must expose a dedicated footer"
-grep -qF 'color-mix(in srgb, currentColor 24%, transparent)' "$module/media/css/admin-bell.css" || fail "footer separator must derive from current text color so it contrasts in both light and dark themes"
+grep -qF 'background-color: var(--body-bg);' "$module/media/css/admin-bell.css" || fail "footer background must follow Joomla's active light/dark body theme"
+grep -qF 'color: var(--body-color);' "$module/media/css/admin-bell.css" || fail "footer actions must use Joomla's active light/dark text color"
+grep -qF 'border-top: 1px solid color-mix(in srgb, var(--body-color) 24%, transparent);' "$module/media/css/admin-bell.css" || fail "footer separator must derive from Joomla's active theme text color"
+if grep -qF 'color: inherit;' "$module/media/css/admin-bell.css"; then
+  fail "footer actions must not inherit the header dropdown's light text color in Joomla light mode"
+fi
 grep -qF 'MOD_XDECARONOTIFICATIONS_CLEAR' "$module/tmpl/default.php" || fail "bell footer must include the clear-notifications action"
 grep -qF 'data-xdecaro-bell-clear' "$module/tmpl/default.php" || fail "bell footer clear button must expose a JavaScript hook"
 grep -qF 'window.confirm' "$module/media/js/admin-bell.js" || fail "clear-all action must require explicit confirmation"
