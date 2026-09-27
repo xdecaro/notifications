@@ -3,6 +3,7 @@ set -euo pipefail
 
 module="modules/admin/xdecaronotifications"
 controller="component/admin/src/Controller/BellController.php"
+service="component/admin/src/Service/NotificationService.php"
 information_model="component/admin/src/Model/InformationModel.php"
 package="package/pkg_xdecaronotifications/pkg_xdecaronotifications.xml"
 installer="package/pkg_xdecaronotifications/script.php"
@@ -19,7 +20,8 @@ fail() {
 [[ -f "$module/tmpl/default.php" ]] || fail "missing administrator module layout"
 [[ -f "$module/media/js/admin-bell.js" ]] || fail "missing bell polling JavaScript"
 [[ -f "$module/media/css/admin-bell.css" ]] || fail "missing bell layout stylesheet"
-[[ -f "$controller" ]] || fail "missing current-user bell poll controller"
+[[ -f "$controller" ]] || fail "missing current-user bell controller"
+[[ -f "$service" ]] || fail "missing notification service"
 
 grep -qF 'client="administrator"' "$module/mod_xdecaronotifications.xml" || fail "module must target administrator client"
 grep -qF "<version>${version}</version>" "$module/mod_xdecaronotifications.xml" || fail "module manifest must match VERSION (${version})"
@@ -27,8 +29,10 @@ grep -qF '<folder>css</folder>' "$module/mod_xdecaronotifications.xml" || fail "
 grep -qF "getUnreadCount('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService recipient query API"
 grep -qF 'bell.poll' "$module/tmpl/default.php" || fail "module layout must expose the bell.poll endpoint"
+grep -qF 'bell.archiveAll' "$module/tmpl/default.php" || fail "module layout must expose the current-user clear endpoint"
 grep -qF 'mod_xdecaronotifications/admin-bell.css' "$module/tmpl/default.php" || fail "module layout must load the bell stylesheet"
 grep -qF 'dataset.pollUrl' "$module/media/js/admin-bell.js" || fail "polling script must consume the layout-provided endpoint"
+grep -qF 'dataset.archiveUrl' "$module/media/js/admin-bell.js" || fail "bell script must consume the layout-provided clear endpoint"
 grep -qF 'setInterval' "$module/media/js/admin-bell.js" || fail "polling interval is missing"
 grep -qF 'document.hidden' "$module/media/js/admin-bell.js" || fail "polling must pause while the tab is hidden"
 grep -qF '10000' "$module/media/js/admin-bell.js" || fail "default poll cadence must be 10 seconds"
@@ -60,9 +64,24 @@ if grep -qF 'text-body-secondary' "$module/media/js/admin-bell.js"; then
 fi
 grep -qF 'text-white opacity-75' "$module/media/js/admin-bell.js" || fail "live bell refresh must preserve readable secondary text contrast"
 
+grep -qF 'xdecaro-notifications-footer' "$module/tmpl/default.php" || fail "bell dropdown must expose a dedicated footer"
+grep -qF 'color-mix(in srgb, currentColor 24%, transparent)' "$module/media/css/admin-bell.css" || fail "footer separator must derive from current text color so it contrasts in both light and dark themes"
+grep -qF 'MOD_XDECARONOTIFICATIONS_CLEAR' "$module/tmpl/default.php" || fail "bell footer must include the clear-notifications action"
+grep -qF 'data-xdecaro-bell-clear' "$module/tmpl/default.php" || fail "bell footer clear button must expose a JavaScript hook"
+grep -qF 'window.confirm' "$module/media/js/admin-bell.js" || fail "clear-all action must require explicit confirmation"
+grep -qF "method: 'POST'" "$module/media/js/admin-bell.js" || fail "clear-all action must use POST"
+
 grep -qF "core.login.admin" "$controller" || fail "bell endpoint must require administrator login authorization"
 grep -qF "getUnreadCount('user'" "$controller" || fail "bell endpoint must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$controller" || fail "bell endpoint must use NotificationService recipient query API"
+grep -qF "Session::checkToken('post')" "$controller" || fail "clear-all endpoint must enforce Joomla POST CSRF validation"
+grep -qF "archiveForRecipient('user'" "$controller" || fail "clear-all endpoint must archive only the authenticated Joomla user recipient"
+grep -qF 'function archiveForRecipient' "$service" || fail "notification service must expose recipient-scoped bulk archive"
+grep -qF "->where(\$this->db->quoteName('recipient_type') . ' = :recipient_type')" "$service" || fail "bulk archive must scope by recipient type"
+grep -qF "->where(\$this->db->quoteName('recipient_id') . ' = :recipient_id')" "$service" || fail "bulk archive must scope by recipient id"
+if grep -qF 'DELETE FROM #__xdecaronotifications_items' "$controller" "$service"; then
+  fail "clear-notifications must archive rather than physically delete notification rows"
+fi
 if grep -qF '#__xdecaronotifications_' "$controller" "$module/mod_xdecaronotifications.php"; then
   fail "bell surfaces must not query Notifications tables directly"
 fi
