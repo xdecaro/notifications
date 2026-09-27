@@ -57,14 +57,19 @@
         }
 
         appendText(wrapper, 'fw-semibold text-wrap xdecaro-notification-title', item.title);
-        appendText(wrapper, 'small text-white opacity-75 text-wrap xdecaro-notification-message', item.message);
+
+        const content = document.createElement('div');
+        content.className = 'xdecaro-notification-content';
+        wrapper.appendChild(content);
+
+        appendText(content, 'small text-white opacity-75 text-wrap xdecaro-notification-message', item.message);
 
         const metadata = [item.priority_label, item.state_label, item.created_label]
           .filter((value) => typeof value === 'string' && value !== '')
           .join(' · ');
 
         if (metadata) {
-          appendText(wrapper, 'small text-white opacity-75 xdecaro-notification-meta', metadata);
+          appendText(content, 'small text-white opacity-75 text-wrap xdecaro-notification-meta', metadata);
         }
 
         itemsRoot.appendChild(wrapper);
