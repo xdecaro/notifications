@@ -2,6 +2,16 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.2 — 2026-09-27
+
+### Administrator bell layout
+
+- Fixed the administrator notification bell so the unread count no longer appears as a second stacked circle below the bell.
+- Updated the module markup to follow Joomla's `header-item-icon` wrapper pattern.
+- Rendered the unread count as a compact badge overlaid on the bell icon while keeping the label and dropdown control on one toolbar row.
+- Added CI regression checks for the bell wrapper and overlaid badge markup.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.1 — 2026-09-15
 
 ### Joomla target

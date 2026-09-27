@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // This synchronizer supports both existing and not-yet-populated SHA-256 feed entries.
 // Release 1.1.2: keep the update-feed checksum publication workflow explicit.
+// Release 1.1.2: main is aligned with the verified release tree before publication.
 $root = dirname(__DIR__);
 $version = trim((string) file_get_contents($root . '/VERSION'));
 $package = $root . '/dist/pkg_xdecaronotifications_' . $version . '.zip';
