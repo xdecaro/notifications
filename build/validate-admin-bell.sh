@@ -18,13 +18,16 @@ fail() {
 [[ -f "$module/mod_xdecaronotifications.xml" ]] || fail "missing administrator module manifest"
 [[ -f "$module/tmpl/default.php" ]] || fail "missing administrator module layout"
 [[ -f "$module/media/js/admin-bell.js" ]] || fail "missing bell polling JavaScript"
+[[ -f "$module/media/css/admin-bell.css" ]] || fail "missing bell layout stylesheet"
 [[ -f "$controller" ]] || fail "missing current-user bell poll controller"
 
 grep -qF 'client="administrator"' "$module/mod_xdecaronotifications.xml" || fail "module must target administrator client"
 grep -qF "<version>${version}</version>" "$module/mod_xdecaronotifications.xml" || fail "module manifest must match VERSION (${version})"
+grep -qF '<folder>css</folder>' "$module/mod_xdecaronotifications.xml" || fail "module manifest must install bell CSS assets"
 grep -qF "getUnreadCount('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService recipient query API"
 grep -qF 'bell.poll' "$module/tmpl/default.php" || fail "module layout must expose the bell.poll endpoint"
+grep -qF 'mod_xdecaronotifications/admin-bell.css' "$module/tmpl/default.php" || fail "module layout must load the bell stylesheet"
 grep -qF 'dataset.pollUrl' "$module/media/js/admin-bell.js" || fail "polling script must consume the layout-provided endpoint"
 grep -qF 'setInterval' "$module/media/js/admin-bell.js" || fail "polling interval is missing"
 grep -qF 'document.hidden' "$module/media/js/admin-bell.js" || fail "polling must pause while the tab is hidden"
@@ -35,6 +38,11 @@ grep -qF 'position-absolute top-0 start-100 translate-middle badge rounded-pill'
 grep -qF 'dropdown-menu' "$module/tmpl/default.php" || fail "bell dropdown markup is missing"
 grep -qF 'class="dropdown-menu dropdown-menu-end xdecaro-notifications-menu"' "$module/tmpl/default.php" || fail "bell dropdown must expose its dedicated layout class"
 grep -qF 'style="width: 500px; max-width: calc(100vw - 24px);"' "$module/tmpl/default.php" || fail "bell dropdown must be 500px wide on desktop and remain viewport-safe"
+grep -qF 'xdecaro-notification-row' "$module/tmpl/default.php" || fail "initial bell rows must use the three-column layout class"
+grep -qF 'xdecaro-notification-row' "$module/media/js/admin-bell.js" || fail "live bell rows must preserve the three-column layout class"
+grep -qF 'grid-template-columns: 120px minmax(0, 1fr) auto;' "$module/media/css/admin-bell.css" || fail "bell title column must reserve 120px on desktop"
+grep -qF '@media (max-width: 575.98px)' "$module/media/css/admin-bell.css" || fail "bell row layout must include a narrow-screen fallback"
+grep -qF 'grid-template-columns: 1fr;' "$module/media/css/admin-bell.css" || fail "bell rows must stack on narrow screens"
 if grep -qF 'text-body-secondary' "$module/tmpl/default.php"; then
   fail "bell dropdown secondary text must not inherit the light body color inside Atum's dark header dropdown"
 fi
