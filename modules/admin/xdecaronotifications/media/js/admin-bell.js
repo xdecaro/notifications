@@ -17,10 +17,16 @@
 
   roots.forEach((root) => {
     const pollUrl = root.dataset.pollUrl || '';
+    const archiveUrl = root.dataset.archiveUrl || '';
+    const tokenName = root.dataset.tokenName || '';
+    const clearConfirm = root.dataset.clearConfirm || '';
     const count = root.querySelector('[data-xdecaro-bell-count]');
     const itemsRoot = root.querySelector('[data-xdecaro-bell-items]');
     const toggle = root.querySelector('.xdecaro-notifications-toggle');
+    const clearButton = root.querySelector('[data-xdecaro-bell-clear]');
     let busy = false;
+    let clearing = false;
+    let hasNotifications = Boolean(itemsRoot?.querySelector('.xdecaro-notification-row'));
 
     if (!pollUrl || !count || !itemsRoot) {
       return;
@@ -37,10 +43,18 @@
       }
     };
 
+    const syncClearButton = () => {
+      if (clearButton) {
+        clearButton.disabled = clearing || !hasNotifications;
+      }
+    };
+
     const renderItems = (items) => {
       itemsRoot.replaceChildren();
+      hasNotifications = Array.isArray(items) && items.length > 0;
+      syncClearButton();
 
-      if (!Array.isArray(items) || items.length === 0) {
+      if (!hasNotifications) {
         appendText(itemsRoot, 'dropdown-item-text text-white opacity-75', root.dataset.emptyLabel || 'No notifications.');
         return;
       }
@@ -77,7 +91,7 @@
     };
 
     const poll = async () => {
-      if (document.hidden || busy) {
+      if (document.hidden || busy || clearing) {
         return;
       }
 
@@ -114,6 +128,56 @@
       }
     };
 
+    if (clearButton && archiveUrl && tokenName) {
+      clearButton.addEventListener('click', async () => {
+        if (clearing || !hasNotifications) {
+          return;
+        }
+
+        if (clearConfirm && !window.confirm(clearConfirm)) {
+          return;
+        }
+
+        clearing = true;
+        syncClearButton();
+
+        try {
+          const body = new URLSearchParams();
+          body.set(tokenName, '1');
+
+          const response = await fetch(archiveUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: body.toString(),
+          });
+
+          if (!response.ok) {
+            return;
+          }
+
+          const payload = await response.json();
+
+          if (!payload || payload.success !== true || !payload.data) {
+            return;
+          }
+
+          renderCount(payload.data.unread);
+          renderItems(payload.data.items);
+        } catch (error) {
+          // Keep the existing bell contents if the archive request fails.
+        } finally {
+          clearing = false;
+          syncClearButton();
+        }
+      });
+    }
+
+    syncClearButton();
     window.setInterval(poll, POLL_INTERVAL);
 
     document.addEventListener('visibilitychange', () => {
