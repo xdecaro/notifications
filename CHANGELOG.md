@@ -2,6 +2,16 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.3 — 2026-09-27
+
+### Administrator bell contrast
+
+- Fixed low-contrast secondary text in the administrator notification dropdown when Joomla is in light mode.
+- The root cause was the use of Bootstrap `text-body-secondary` inside Atum's intentionally dark header dropdown: in light mode the body-secondary color becomes dark while the dropdown remains dark.
+- Replaced those secondary text classes with readable white text at reduced opacity, preserving the dark-mode appearance.
+- Added a CI regression check preventing body-secondary colors from being reintroduced into the bell dropdown.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.2 — 2026-09-27
 
 ### Administrator bell layout

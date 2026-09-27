@@ -1,0 +1,2 @@
+-- Notifications 1.1.3
+-- Administrator bell light-mode contrast fix. No database structure or stored data changes.
