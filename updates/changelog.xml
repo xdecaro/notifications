@@ -3,6 +3,18 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.9</version>
+    <change>
+      <item>Fixes administrator bell footer actions becoming white-on-white in Joomla Light Mode.</item>
+      <item>Uses Joomla Atum body background and text variables so footer background, text, icons and hover states automatically follow Light/Dark mode.</item>
+      <item>Derives the footer separator from the active Joomla body text color instead of inherited header text color.</item>
+      <item>Adds CI regression checks preventing inherited footer text color from returning.</item>
+      <item>No notification logic, database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.8</version>
     <change>
       <item>Replaces the wide footer divider band with a subtle separator derived from the current text color for appropriate contrast across light and dark administrator modes.</item>
