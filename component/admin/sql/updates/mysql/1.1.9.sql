@@ -1,0 +1,2 @@
+-- Notifications 1.1.9
+-- Administrator bell footer theme-aware contrast fix. No database structure or stored data changes.
