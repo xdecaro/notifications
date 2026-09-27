@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 
 if ($app->getInput()->getBool('hidemainmenu')) {
     return;
@@ -14,12 +15,16 @@ HTMLHelper::_('stylesheet', 'mod_xdecaronotifications/admin-bell.css', ['version
 HTMLHelper::_('script', 'mod_xdecaronotifications/admin-bell.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
 
 $pollUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.poll&format=json', false);
+$archiveUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.archiveAll&format=json', false);
 $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notifications');
 ?>
 <div
     class="header-item-content dropdown"
     data-xdecaro-notifications-bell
     data-poll-url="<?php echo htmlspecialchars($pollUrl, ENT_QUOTES, 'UTF-8'); ?>"
+    data-archive-url="<?php echo htmlspecialchars($archiveUrl, ENT_QUOTES, 'UTF-8'); ?>"
+    data-token-name="<?php echo htmlspecialchars(Session::getFormToken(), ENT_QUOTES, 'UTF-8'); ?>"
+    data-clear-confirm="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_CLEAR_CONFIRM'), ENT_QUOTES, 'UTF-8'); ?>"
     data-empty-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_EMPTY'), ENT_QUOTES, 'UTF-8'); ?>"
     data-bell-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_TITLE'), ENT_QUOTES, 'UTF-8'); ?>"
 >
@@ -89,12 +94,25 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
             <?php endif; ?>
         </div>
 
-        <?php if ($canManage) : ?>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="<?php echo $centerUrl; ?>">
-                <span class="icon-list icon-fw" aria-hidden="true"></span>
-                <?php echo Text::_('MOD_XDECARONOTIFICATIONS_OPEN_CENTER'); ?>
-            </a>
-        <?php endif; ?>
+        <div class="xdecaro-notifications-footer d-flex align-items-center justify-content-between gap-2">
+            <?php if ($canManage) : ?>
+                <a class="xdecaro-notifications-footer-action" href="<?php echo $centerUrl; ?>">
+                    <span class="icon-list icon-fw" aria-hidden="true"></span>
+                    <span><?php echo Text::_('MOD_XDECARONOTIFICATIONS_OPEN_CENTER'); ?></span>
+                </a>
+            <?php else : ?>
+                <span></span>
+            <?php endif; ?>
+
+            <button
+                class="xdecaro-notifications-footer-action xdecaro-notifications-clear"
+                type="button"
+                data-xdecaro-bell-clear
+                <?php echo !$items ? 'disabled' : ''; ?>
+            >
+                <span class="icon-trash icon-fw" aria-hidden="true"></span>
+                <span><?php echo Text::_('MOD_XDECARONOTIFICATIONS_CLEAR'); ?></span>
+            </button>
+        </div>
     </div>
 </div>
