@@ -1,0 +1,2 @@
+-- Notifications 1.1.8
+-- Administrator bell footer separator and current-user clear action. No database structure or stored data changes.
