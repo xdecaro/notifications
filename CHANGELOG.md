@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.6 — 2026-09-27
+
+### Administrator bell columns
+
+- Reserved a fixed 120px first column for notification titles inside the 500px administrator bell dropdown.
+- Kept message content flexible in the middle column and priority/state/date metadata aligned in a dedicated third column.
+- Applied the same row layout to the 10-second JavaScript live refresh so the first column does not collapse after polling.
+- Added a narrow-screen fallback that stacks each notification vertically and a dedicated module stylesheet installed with the administrator module.
+- Added CI regression checks for the 120px desktop title column, live-rendered rows and mobile stacking behavior.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.5 — 2026-09-27
 
 ### Administrator bell width

@@ -3,6 +3,18 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.6</version>
+    <change>
+      <item>Reserves a 120px first column for administrator notification titles inside the 500px bell dropdown.</item>
+      <item>Keeps message content flexible and notification metadata aligned in a dedicated third column.</item>
+      <item>Preserves the same three-column layout after the 10-second live refresh and stacks rows on narrow screens.</item>
+      <item>Adds a dedicated module stylesheet and CI regression checks for the desktop and mobile layout contracts.</item>
+      <item>No notification logic, database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.5</version>
     <change>
       <item>Increases the administrator notification dropdown width to 500px on desktop so notification content wraps less aggressively.</item>
