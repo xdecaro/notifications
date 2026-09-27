@@ -1,0 +1,2 @@
+-- Notifications 1.1.6
+-- Administrator bell notification row column layout adjustment. No database structure or stored data changes.
