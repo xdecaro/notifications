@@ -33,6 +33,8 @@ grep -qF 'icon-bell' "$module/tmpl/default.php" || fail "bell icon markup is mis
 grep -qF '<span class="position-relative">' "$module/tmpl/default.php" || fail "bell icon must have one relative positioning wrapper"
 grep -qF 'position-absolute top-0 start-100 translate-middle badge rounded-pill' "$module/tmpl/default.php" || fail "unread count must be a compact badge over the bell"
 grep -qF 'dropdown-menu' "$module/tmpl/default.php" || fail "bell dropdown markup is missing"
+grep -qF 'class="dropdown-menu dropdown-menu-end xdecaro-notifications-menu"' "$module/tmpl/default.php" || fail "bell dropdown must expose its dedicated layout class"
+grep -qF 'style="width: 500px; max-width: calc(100vw - 24px);"' "$module/tmpl/default.php" || fail "bell dropdown must be 500px wide on desktop and remain viewport-safe"
 if grep -qF 'text-body-secondary' "$module/tmpl/default.php"; then
   fail "bell dropdown secondary text must not inherit the light body color inside Atum's dark header dropdown"
 fi
