@@ -43,7 +43,10 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
         <span class="icon-angle-down" aria-hidden="true"></span>
     </button>
 
-    <div class="dropdown-menu dropdown-menu-end">
+    <div
+        class="dropdown-menu dropdown-menu-end xdecaro-notifications-menu"
+        style="width: 500px; max-width: calc(100vw - 24px);"
+    >
         <div class="dropdown-header d-flex align-items-center gap-2">
             <span class="icon-bell icon-fw" aria-hidden="true"></span>
             <strong><?php echo Text::_('MOD_XDECARONOTIFICATIONS_TITLE'); ?></strong>
