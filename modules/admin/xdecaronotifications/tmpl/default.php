@@ -70,13 +70,15 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
                         <div class="dropdown-item-text py-2 xdecaro-notification-row">
                     <?php endif; ?>
                             <div class="fw-semibold text-wrap xdecaro-notification-title"><?php echo htmlspecialchars((string) ($item['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="small text-white opacity-75 text-wrap xdecaro-notification-message"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="small text-white opacity-75 xdecaro-notification-meta">
-                                <?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper($priority)); ?>
-                                · <?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper($state)); ?>
-                                <?php if ($created !== '') : ?>
-                                    · <?php echo HTMLHelper::_('date', $created, Text::_('DATE_FORMAT_LC5')); ?>
-                                <?php endif; ?>
+                            <div class="xdecaro-notification-content">
+                                <div class="small text-white opacity-75 text-wrap xdecaro-notification-message"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                                <div class="small text-white opacity-75 text-wrap xdecaro-notification-meta">
+                                    <?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper($priority)); ?>
+                                    · <?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper($state)); ?>
+                                    <?php if ($created !== '') : ?>
+                                        · <?php echo HTMLHelper::_('date', $created, Text::_('DATE_FORMAT_LC5')); ?>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                     <?php if ($actionUrl !== '') : ?>
                         </a>
