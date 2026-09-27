@@ -38,9 +38,17 @@ grep -qF 'position-absolute top-0 start-100 translate-middle badge rounded-pill'
 grep -qF 'dropdown-menu' "$module/tmpl/default.php" || fail "bell dropdown markup is missing"
 grep -qF 'class="dropdown-menu dropdown-menu-end xdecaro-notifications-menu"' "$module/tmpl/default.php" || fail "bell dropdown must expose its dedicated layout class"
 grep -qF 'style="width: 500px; max-width: calc(100vw - 24px);"' "$module/tmpl/default.php" || fail "bell dropdown must be 500px wide on desktop and remain viewport-safe"
-grep -qF 'xdecaro-notification-row' "$module/tmpl/default.php" || fail "initial bell rows must use the three-column layout class"
-grep -qF 'xdecaro-notification-row' "$module/media/js/admin-bell.js" || fail "live bell rows must preserve the three-column layout class"
-grep -qF 'grid-template-columns: 120px minmax(0, 1fr) auto;' "$module/media/css/admin-bell.css" || fail "bell title column must reserve 120px on desktop"
+grep -qF 'xdecaro-notification-row' "$module/tmpl/default.php" || fail "initial bell rows must use the two-column layout class"
+grep -qF 'xdecaro-notification-row' "$module/media/js/admin-bell.js" || fail "live bell rows must preserve the two-column layout class"
+grep -qF 'xdecaro-notification-content' "$module/tmpl/default.php" || fail "initial bell rows must group message and metadata in the content column"
+grep -qF 'xdecaro-notification-content' "$module/media/js/admin-bell.js" || fail "live bell rows must group message and metadata in the content column"
+grep -qF 'grid-template-columns: 120px minmax(0, 1fr);' "$module/media/css/admin-bell.css" || fail "bell rows must use a 120px title column plus one flexible content column"
+if grep -qF 'grid-template-columns: 120px minmax(0, 1fr) auto;' "$module/media/css/admin-bell.css"; then
+  fail "bell metadata must not occupy a third desktop column"
+fi
+if grep -qF 'white-space: nowrap;' "$module/media/css/admin-bell.css"; then
+  fail "bell metadata must wrap inside the content column instead of forcing horizontal overflow"
+fi
 grep -qF '@media (max-width: 575.98px)' "$module/media/css/admin-bell.css" || fail "bell row layout must include a narrow-screen fallback"
 grep -qF 'grid-template-columns: 1fr;' "$module/media/css/admin-bell.css" || fail "bell rows must stack on narrow screens"
 if grep -qF 'text-body-secondary' "$module/tmpl/default.php"; then
