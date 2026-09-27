@@ -1,0 +1,27 @@
+.xdecaro-notification-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.xdecaro-notification-row > * {
+  min-width: 0;
+}
+
+.xdecaro-notification-meta {
+  white-space: nowrap;
+  text-align: right;
+}
+
+@media (max-width: 575.98px) {
+  .xdecaro-notification-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .xdecaro-notification-meta {
+    white-space: normal;
+    text-align: left;
+  }
+}
