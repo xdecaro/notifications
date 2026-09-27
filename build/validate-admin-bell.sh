@@ -37,6 +37,10 @@ if grep -qF 'text-body-secondary' "$module/tmpl/default.php"; then
   fail "bell dropdown secondary text must not inherit the light body color inside Atum's dark header dropdown"
 fi
 grep -qF 'text-white opacity-75' "$module/tmpl/default.php" || fail "bell dropdown secondary text must keep readable contrast in both light and dark administrator modes"
+if grep -qF 'text-body-secondary' "$module/media/js/admin-bell.js"; then
+  fail "live bell refresh must not restore unreadable dark secondary text inside Atum's header dropdown"
+fi
+grep -qF 'text-white opacity-75' "$module/media/js/admin-bell.js" || fail "live bell refresh must preserve readable secondary text contrast"
 
 grep -qF "core.login.admin" "$controller" || fail "bell endpoint must require administrator login authorization"
 grep -qF "getUnreadCount('user'" "$controller" || fail "bell endpoint must use NotificationService unread-count API"
