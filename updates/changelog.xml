@@ -3,6 +3,19 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.8</version>
+    <change>
+      <item>Replaces the wide footer divider band with a subtle separator derived from the current text color for appropriate contrast across light and dark administrator modes.</item>
+      <item>Adds a right-aligned Clear notifications action beside Open notification center.</item>
+      <item>Requires explicit confirmation and a Joomla CSRF-protected POST request before clearing the bell.</item>
+      <item>Archives only unread/read notifications belonging to the authenticated Joomla administrator and never physically deletes notification rows.</item>
+      <item>Refreshes the unread badge and bell contents immediately after a successful clear action.</item>
+      <item>No database structure or stored notification data format changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.7</version>
     <change>
       <item>Replaces the administrator notification row's three-column desktop layout with a fixed 120px title column and one flexible content column.</item>
