@@ -10,6 +10,7 @@ if ($app->getInput()->getBool('hidemainmenu')) {
 }
 
 HTMLHelper::_('bootstrap.dropdown', '.xdecaro-notifications-toggle');
+HTMLHelper::_('stylesheet', 'mod_xdecaronotifications/admin-bell.css', ['version' => 'auto', 'relative' => true]);
 HTMLHelper::_('script', 'mod_xdecaronotifications/admin-bell.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
 
 $pollUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.poll&format=json', false);
@@ -64,13 +65,13 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
                     $created = (string) ($item['created'] ?? '');
                     ?>
                     <?php if ($actionUrl !== '') : ?>
-                        <a class="dropdown-item py-2" href="<?php echo htmlspecialchars($actionUrl, ENT_QUOTES, 'UTF-8'); ?>">
+                        <a class="dropdown-item py-2 xdecaro-notification-row" href="<?php echo htmlspecialchars($actionUrl, ENT_QUOTES, 'UTF-8'); ?>">
                     <?php else : ?>
-                        <div class="dropdown-item-text py-2">
+                        <div class="dropdown-item-text py-2 xdecaro-notification-row">
                     <?php endif; ?>
-                            <div class="fw-semibold text-wrap"><?php echo htmlspecialchars((string) ($item['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="small text-white opacity-75 text-wrap"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="small text-white opacity-75 mt-1">
+                            <div class="fw-semibold text-wrap xdecaro-notification-title"><?php echo htmlspecialchars((string) ($item['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                            <div class="small text-white opacity-75 text-wrap xdecaro-notification-message"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                            <div class="small text-white opacity-75 xdecaro-notification-meta">
                                 <?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper($priority)); ?>
                                 · <?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper($state)); ?>
                                 <?php if ($created !== '') : ?>
