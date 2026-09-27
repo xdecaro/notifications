@@ -3,6 +3,18 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.7</version>
+    <change>
+      <item>Replaces the administrator notification row's three-column desktop layout with a fixed 120px title column and one flexible content column.</item>
+      <item>Stacks the notification message and priority/state/date metadata in the content column so metadata no longer steals width or overflows the 500px dropdown.</item>
+      <item>Allows metadata to wrap naturally beneath the message and preserves the same structure after the 10-second live refresh.</item>
+      <item>Keeps the narrow-screen vertical fallback and adds CI guards against restoring a third metadata column or forced nowrap behavior.</item>
+      <item>No notification logic, database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.6</version>
     <change>
       <item>Reserves a 120px first column for administrator notification titles inside the 500px bell dropdown.</item>

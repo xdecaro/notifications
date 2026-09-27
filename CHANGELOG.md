@@ -2,6 +2,18 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.7 — 2026-09-27
+
+### Administrator bell row layout
+
+- Replaced the desktop three-column notification row with two columns: a fixed 120px title column and one flexible content column.
+- Stacked the notification message and priority/state/date metadata inside the content column so metadata no longer steals horizontal space or overflows the 500px dropdown.
+- Allowed metadata to wrap naturally and kept it left-aligned beneath the message.
+- Applied the same two-column structure to the initial PHP render and the 10-second JavaScript live refresh.
+- Preserved the narrow-screen fallback that stacks each notification vertically.
+- Added CI regression checks preventing the old third metadata column and forced nowrap behavior from returning.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.6 — 2026-09-27
 
 ### Administrator bell columns
