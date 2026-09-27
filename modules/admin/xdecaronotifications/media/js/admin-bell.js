@@ -41,7 +41,7 @@
       itemsRoot.replaceChildren();
 
       if (!Array.isArray(items) || items.length === 0) {
-        appendText(itemsRoot, 'dropdown-item-text text-body-secondary', root.dataset.emptyLabel || 'No notifications.');
+        appendText(itemsRoot, 'dropdown-item-text text-white opacity-75', root.dataset.emptyLabel || 'No notifications.');
         return;
       }
 
@@ -55,14 +55,14 @@
         }
 
         appendText(wrapper, 'fw-semibold text-wrap', item.title);
-        appendText(wrapper, 'small text-body-secondary text-wrap', item.message);
+        appendText(wrapper, 'small text-white opacity-75 text-wrap', item.message);
 
         const metadata = [item.priority_label, item.state_label, item.created_label]
           .filter((value) => typeof value === 'string' && value !== '')
           .join(' · ');
 
         if (metadata) {
-          appendText(wrapper, 'small text-body-secondary mt-1', metadata);
+          appendText(wrapper, 'small text-white opacity-75 mt-1', metadata);
         }
 
         itemsRoot.appendChild(wrapper);
