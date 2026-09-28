@@ -3,6 +3,20 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.11</version>
+    <change>
+      <item>Replaces the bell Clear notifications archive action with Mark all as read so the current UI no longer removes notifications from active history.</item>
+      <item>Adds a compact per-row check action for marking one unread notification as read.</item>
+      <item>Adds subtle separators between bell rows and reduced emphasis for already-read items.</item>
+      <item>Adds authenticated CSRF-protected single and bulk read endpoints scoped to the currently signed-in Joomla administrator.</item>
+      <item>Refreshes the unread badge and bell contents immediately after read-state mutations while preserving 10-second polling.</item>
+      <item>Keeps the legacy archive-all endpoint only for compatibility with already-loaded older bell JavaScript; the current UI does not expose it.</item>
+      <item>No database structure or stored notification data format changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.10</version>
     <change>
       <item>Fixes Open notification center remaining white-on-white in Joomla administrator Light Mode while Clear notifications was visible.</item>
@@ -89,7 +103,7 @@
     <version>1.1.3</version>
     <change>
       <item>Fixes low-contrast secondary text in the administrator notification dropdown when Joomla is in light mode.</item>
-      <item>Avoids Bootstrap body-secondary colors inside Atum's intentionally dark header dropdown and uses readable white secondary text with reduced opacity.</item>
+      <item>Avoids Bootstrap body-secondary colors inside Atum's dark header dropdown and uses readable white secondary text with reduced opacity.</item>
       <item>Adds a CI regression guard so the dropdown remains readable in both light and dark administrator modes.</item>
       <item>No notification logic, database structure or stored notification data changes.</item>
     </change>
