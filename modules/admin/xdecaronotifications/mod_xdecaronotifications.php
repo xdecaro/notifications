@@ -23,7 +23,7 @@ try {
         $recipientId = (string) $userId;
         $countUnread = $service->getUnreadCount('user', $recipientId);
         $items = $service->getForRecipient('user', $recipientId, [
-            'state' => ['unread', 'read'],
+            'state' => 'unread',
             'limit' => 5,
         ]);
         $app->getLanguage()->load(
