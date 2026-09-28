@@ -3,6 +3,18 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.10</version>
+    <change>
+      <item>Fixes Open notification center remaining white-on-white in Joomla administrator Light Mode while Clear notifications was visible.</item>
+      <item>Uses a footer-scoped action selector with sufficient specificity to override Atum header link colors without !important or fixed colors.</item>
+      <item>Keeps Joomla theme-aware body colors, footer background, separator and hover behavior unchanged across Light/Dark mode.</item>
+      <item>Adds a CI regression guard requiring the footer action selector to outrank Atum header link color rules.</item>
+      <item>No notification logic, database structure or stored notification data changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.9</version>
     <change>
       <item>Fixes administrator bell footer actions becoming white-on-white in Joomla Light Mode.</item>
