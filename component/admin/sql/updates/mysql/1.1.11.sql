@@ -1,0 +1,2 @@
+-- Notifications 1.1.11
+-- Administrator bell read-state actions and row separators. No database structure or stored data changes.
