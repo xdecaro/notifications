@@ -15,18 +15,20 @@ HTMLHelper::_('stylesheet', 'mod_xdecaronotifications/admin-bell.css', ['version
 HTMLHelper::_('script', 'mod_xdecaronotifications/admin-bell.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
 
 $pollUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.poll&format=json', false);
-$archiveUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.archiveAll&format=json', false);
+$readUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.markRead&format=json', false);
+$readAllUrl = Route::_('index.php?option=com_xdecaronotifications&task=bell.markAllRead&format=json', false);
 $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notifications');
 ?>
 <div
     class="header-item-content dropdown"
     data-xdecaro-notifications-bell
     data-poll-url="<?php echo htmlspecialchars($pollUrl, ENT_QUOTES, 'UTF-8'); ?>"
-    data-archive-url="<?php echo htmlspecialchars($archiveUrl, ENT_QUOTES, 'UTF-8'); ?>"
+    data-read-url="<?php echo htmlspecialchars($readUrl, ENT_QUOTES, 'UTF-8'); ?>"
+    data-read-all-url="<?php echo htmlspecialchars($readAllUrl, ENT_QUOTES, 'UTF-8'); ?>"
     data-token-name="<?php echo htmlspecialchars(Session::getFormToken(), ENT_QUOTES, 'UTF-8'); ?>"
-    data-clear-confirm="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_CLEAR_CONFIRM'), ENT_QUOTES, 'UTF-8'); ?>"
     data-empty-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_EMPTY'), ENT_QUOTES, 'UTF-8'); ?>"
     data-bell-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_TITLE'), ENT_QUOTES, 'UTF-8'); ?>"
+    data-mark-read-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_MARK_READ'), ENT_QUOTES, 'UTF-8'); ?>"
 >
     <button
         class="dropdown-toggle d-flex align-items-center px-2 py-0 xdecaro-notifications-toggle"
@@ -64,32 +66,53 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
             <?php else : ?>
                 <?php foreach ($items as $item) : ?>
                     <?php
+                    $notificationId = (int) ($item['id'] ?? 0);
                     $actionUrl = (string) ($item['action_url'] ?? '');
                     $priority = (string) ($item['priority'] ?? 'normal');
                     $state = (string) ($item['state'] ?? 'unread');
                     $created = (string) ($item['created'] ?? '');
+                    $isUnread = $state === 'unread';
                     ?>
-                    <?php if ($actionUrl !== '') : ?>
-                        <a class="dropdown-item py-2 xdecaro-notification-row" href="<?php echo htmlspecialchars($actionUrl, ENT_QUOTES, 'UTF-8'); ?>">
-                    <?php else : ?>
-                        <div class="dropdown-item-text py-2 xdecaro-notification-row">
-                    <?php endif; ?>
-                            <div class="fw-semibold text-wrap xdecaro-notification-title"><?php echo htmlspecialchars((string) ($item['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                            <div class="xdecaro-notification-content">
-                                <div class="small text-white opacity-75 text-wrap xdecaro-notification-message"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
-                                <div class="small text-white opacity-75 text-wrap xdecaro-notification-meta">
-                                    <?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper($priority)); ?>
-                                    · <?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper($state)); ?>
-                                    <?php if ($created !== '') : ?>
-                                        · <?php echo HTMLHelper::_('date', $created, Text::_('DATE_FORMAT_LC5')); ?>
-                                    <?php endif; ?>
+                    <div
+                        class="xdecaro-notification-entry<?php echo $isUnread ? ' xdecaro-notification-entry-unread' : ''; ?>"
+                        data-notification-id="<?php echo $notificationId; ?>"
+                        data-notification-state="<?php echo htmlspecialchars($state, ENT_QUOTES, 'UTF-8'); ?>"
+                    >
+                        <?php if ($actionUrl !== '') : ?>
+                            <a class="dropdown-item py-2 xdecaro-notification-row" href="<?php echo htmlspecialchars($actionUrl, ENT_QUOTES, 'UTF-8'); ?>">
+                        <?php else : ?>
+                            <div class="dropdown-item-text py-2 xdecaro-notification-row">
+                        <?php endif; ?>
+                                <div class="fw-semibold text-wrap xdecaro-notification-title"><?php echo htmlspecialchars((string) ($item['title'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                                <div class="xdecaro-notification-content">
+                                    <div class="small text-white opacity-75 text-wrap xdecaro-notification-message"><?php echo htmlspecialchars((string) ($item['message'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></div>
+                                    <div class="small text-white opacity-75 text-wrap xdecaro-notification-meta">
+                                        <?php echo Text::_('COM_XDECARONOTIFICATIONS_PRIORITY_' . strtoupper($priority)); ?>
+                                        · <?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE_' . strtoupper($state)); ?>
+                                        <?php if ($created !== '') : ?>
+                                            · <?php echo HTMLHelper::_('date', $created, Text::_('DATE_FORMAT_LC5')); ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
+                        <?php if ($actionUrl !== '') : ?>
+                            </a>
+                        <?php else : ?>
                             </div>
-                    <?php if ($actionUrl !== '') : ?>
-                        </a>
-                    <?php else : ?>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
+
+                        <?php if ($isUnread && $notificationId > 0) : ?>
+                            <button
+                                class="xdecaro-notification-read"
+                                type="button"
+                                data-xdecaro-bell-read
+                                data-notification-id="<?php echo $notificationId; ?>"
+                                title="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_MARK_READ'), ENT_QUOTES, 'UTF-8'); ?>"
+                                aria-label="<?php echo htmlspecialchars(Text::_('MOD_XDECARONOTIFICATIONS_MARK_READ'), ENT_QUOTES, 'UTF-8'); ?>"
+                            >
+                                <span class="icon-check icon-fw" aria-hidden="true"></span>
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
@@ -105,13 +128,13 @@ $centerUrl = Route::_('index.php?option=com_xdecaronotifications&view=notificati
             <?php endif; ?>
 
             <button
-                class="xdecaro-notifications-footer-action xdecaro-notifications-clear"
+                class="xdecaro-notifications-footer-action xdecaro-notifications-read-all"
                 type="button"
-                data-xdecaro-bell-clear
-                <?php echo !$items ? 'disabled' : ''; ?>
+                data-xdecaro-bell-read-all
+                <?php echo $countUnread < 1 ? 'disabled' : ''; ?>
             >
-                <span class="icon-trash icon-fw" aria-hidden="true"></span>
-                <span><?php echo Text::_('MOD_XDECARONOTIFICATIONS_CLEAR'); ?></span>
+                <span class="icon-check icon-fw" aria-hidden="true"></span>
+                <span><?php echo Text::_('MOD_XDECARONOTIFICATIONS_MARK_ALL_READ'); ?></span>
             </button>
         </div>
     </div>
