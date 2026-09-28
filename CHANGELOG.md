@@ -2,6 +2,19 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.11 — 2026-09-28
+
+### Administrator bell read actions
+
+- Replaced the bell footer **Clear notifications** archive action with **Mark all as read**, so bell actions no longer remove notifications from the active history.
+- Added a compact per-row check action on the right side of each unread notification to mark only that notification as read.
+- Added subtle separators between notification rows and a reduced-emphasis treatment for already-read rows.
+- Added authenticated, CSRF-protected `bell.markRead` and `bell.markAllRead` endpoints that scope mutations to the currently signed-in Joomla administrator through `NotificationService::markReadForRecipient()`.
+- The unread badge and bell contents refresh immediately after single or bulk read actions and keep the existing 10-second polling behavior.
+- Kept the old archive endpoint only for compatibility with pages that may still have older JavaScript loaded; the current bell UI no longer exposes it.
+- Added CI regression checks for row separators, single-read controls, bulk mark-read behavior and non-destructive wording.
+- No database structure or stored notification data format changes.
+
 ## 1.1.10 — 2026-09-28
 
 ### Administrator bell footer link contrast
