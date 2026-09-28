@@ -27,10 +27,14 @@ grep -qF '<folder>css</folder>' "$module/mod_xdecaronotifications.xml" || fail "
 grep -qF "getUnreadCount('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService recipient query API"
 grep -qF 'bell.poll' "$module/tmpl/default.php" || fail "module layout must expose the bell.poll endpoint"
-grep -qF 'bell.archiveAll' "$module/tmpl/default.php" || fail "module layout must expose the current-user clear endpoint"
+grep -qF 'bell.markRead' "$module/tmpl/default.php" || fail "module layout must expose the current-user single-read endpoint"
+grep -qF 'bell.markAllRead' "$module/tmpl/default.php" || fail "module layout must expose the current-user mark-all-read endpoint"
+grep -qF 'data-read-url=' "$module/tmpl/default.php" || fail "module layout must expose the single-read URL"
+grep -qF 'data-read-all-url=' "$module/tmpl/default.php" || fail "module layout must expose the mark-all-read URL"
 grep -qF 'mod_xdecaronotifications/admin-bell.css' "$module/tmpl/default.php" || fail "module layout must load the bell stylesheet"
 grep -qF 'dataset.pollUrl' "$module/media/js/admin-bell.js" || fail "polling script must consume the layout-provided endpoint"
-grep -qF 'dataset.archiveUrl' "$module/media/js/admin-bell.js" || fail "bell script must consume the layout-provided clear endpoint"
+grep -qF 'dataset.readUrl' "$module/media/js/admin-bell.js" || fail "bell script must consume the single-read endpoint"
+grep -qF 'dataset.readAllUrl' "$module/media/js/admin-bell.js" || fail "bell script must consume the mark-all-read endpoint"
 grep -qF 'setInterval' "$module/media/js/admin-bell.js" || fail "polling interval is missing"
 grep -qF 'document.hidden' "$module/media/js/admin-bell.js" || fail "polling must pause while the tab is hidden"
 grep -qF '10000' "$module/media/js/admin-bell.js" || fail "default poll cadence must be 10 seconds"
@@ -40,11 +44,16 @@ grep -qF 'position-absolute top-0 start-100 translate-middle badge rounded-pill'
 grep -qF 'dropdown-menu' "$module/tmpl/default.php" || fail "bell dropdown markup is missing"
 grep -qF 'class="dropdown-menu dropdown-menu-end xdecaro-notifications-menu"' "$module/tmpl/default.php" || fail "bell dropdown must expose its dedicated layout class"
 grep -qF 'style="width: 500px; max-width: calc(100vw - 24px);"' "$module/tmpl/default.php" || fail "bell dropdown must be 500px wide on desktop and remain viewport-safe"
+grep -qF 'xdecaro-notification-entry' "$module/tmpl/default.php" || fail "initial bell items must expose an entry wrapper for the row action"
+grep -qF 'xdecaro-notification-entry' "$module/media/js/admin-bell.js" || fail "live bell items must preserve the entry wrapper"
 grep -qF 'xdecaro-notification-row' "$module/tmpl/default.php" || fail "initial bell rows must use the two-column layout class"
 grep -qF 'xdecaro-notification-row' "$module/media/js/admin-bell.js" || fail "live bell rows must preserve the two-column layout class"
 grep -qF 'xdecaro-notification-content' "$module/tmpl/default.php" || fail "initial bell rows must group message and metadata in the content column"
 grep -qF 'xdecaro-notification-content' "$module/media/js/admin-bell.js" || fail "live bell rows must group message and metadata in the content column"
 grep -qF 'grid-template-columns: 120px minmax(0, 1fr);' "$module/media/css/admin-bell.css" || fail "bell rows must use a 120px title column plus one flexible content column"
+grep -qF '.xdecaro-notification-entry {' "$module/media/css/admin-bell.css" || fail "bell entries must have their own layout wrapper"
+grep -qF 'border-bottom: 1px solid' "$module/media/css/admin-bell.css" || fail "bell entries must have a visible row separator"
+grep -qF 'xdecaro-notification-read' "$module/media/css/admin-bell.css" || fail "per-row mark-read action styling is missing"
 if grep -qF 'grid-template-columns: 120px minmax(0, 1fr) auto;' "$module/media/css/admin-bell.css"; then
   fail "bell metadata must not occupy a third desktop column"
 fi
@@ -70,18 +79,28 @@ grep -qF '.xdecaro-notifications-footer .xdecaro-notifications-footer-action {' 
 if grep -qF 'color: inherit;' "$module/media/css/admin-bell.css"; then
   fail "footer actions must not inherit the header dropdown's light text color in Joomla light mode"
 fi
-grep -qF 'MOD_XDECARONOTIFICATIONS_CLEAR' "$module/tmpl/default.php" || fail "bell footer must include the clear-notifications action"
-grep -qF 'data-xdecaro-bell-clear' "$module/tmpl/default.php" || fail "bell footer clear button must expose a JavaScript hook"
-grep -qF 'window.confirm' "$module/media/js/admin-bell.js" || fail "clear-all action must require explicit confirmation"
-grep -qF "method: 'POST'" "$module/media/js/admin-bell.js" || fail "clear-all action must use POST"
+grep -qF 'MOD_XDECARONOTIFICATIONS_MARK_READ' "$module/tmpl/default.php" || fail "unread bell rows must include the mark-read action"
+grep -qF 'MOD_XDECARONOTIFICATIONS_MARK_ALL_READ' "$module/tmpl/default.php" || fail "bell footer must include the mark-all-read action"
+grep -qF 'data-xdecaro-bell-read' "$module/tmpl/default.php" || fail "per-row mark-read button must expose a JavaScript hook"
+grep -qF 'data-xdecaro-bell-read-all' "$module/tmpl/default.php" || fail "mark-all-read button must expose a JavaScript hook"
+if grep -qF 'MOD_XDECARONOTIFICATIONS_CLEAR' "$module/tmpl/default.php"; then
+  fail "bell footer must no longer expose destructive clear/archive wording"
+fi
+if grep -qF 'data-xdecaro-bell-clear' "$module/tmpl/default.php"; then
+  fail "bell footer must no longer expose the archive-all clear action"
+fi
+grep -qF "method: 'POST'" "$module/media/js/admin-bell.js" || fail "read-state mutations must use POST"
 
 grep -qF "core.login.admin" "$controller" || fail "bell endpoint must require administrator login authorization"
 grep -qF "getUnreadCount('user'" "$controller" || fail "bell endpoint must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$controller" || fail "bell endpoint must use NotificationService recipient query API"
-grep -qF "Session::checkToken('post')" "$controller" || fail "clear-all endpoint must enforce Joomla POST CSRF validation"
-grep -qF "archiveForRecipient(\$notificationId, 'user', \$recipientId)" "$controller" || fail "clear-all endpoint must archive only notifications belonging to the authenticated Joomla user"
+grep -qF 'public function markRead(): void' "$controller" || fail "bell controller must expose a single-notification markRead endpoint"
+grep -qF 'public function markAllRead(): void' "$controller" || fail "bell controller must expose a markAllRead endpoint"
+grep -qF "Session::checkToken('post')" "$controller" || fail "read-state endpoints must enforce Joomla POST CSRF validation"
+grep -qF "markReadForRecipient(\$notificationId, 'user', \$recipientId)" "$controller" || fail "single-read endpoint must scope the mutation to the authenticated Joomla user"
+grep -qF "'state' => 'unread'" "$controller" || fail "mark-all-read must iterate only unread notifications"
 if grep -qF 'DELETE FROM' "$controller"; then
-  fail "clear-notifications must archive rather than physically delete notification rows"
+  fail "bell read-state actions must never physically delete notification rows"
 fi
 if grep -qF '#__xdecaronotifications_' "$controller" "$module/mod_xdecaronotifications.php"; then
   fail "bell surfaces must not query Notifications tables directly"
