@@ -28,7 +28,7 @@
   padding: 0.5rem 0.75rem;
 }
 
-.xdecaro-notifications-footer-action {
+.xdecaro-notifications-footer .xdecaro-notifications-footer-action {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -45,14 +45,14 @@
   cursor: pointer;
 }
 
-.xdecaro-notifications-footer-action:hover,
-.xdecaro-notifications-footer-action:focus-visible {
+.xdecaro-notifications-footer .xdecaro-notifications-footer-action:hover,
+.xdecaro-notifications-footer .xdecaro-notifications-footer-action:focus-visible {
   background: color-mix(in srgb, var(--body-color) 10%, transparent);
   color: var(--body-color);
   text-decoration: none;
 }
 
-.xdecaro-notifications-footer-action:disabled {
+.xdecaro-notifications-footer .xdecaro-notifications-footer-action:disabled {
   opacity: 0.45;
   cursor: default;
 }
@@ -68,7 +68,7 @@
     padding-inline: 0.5rem;
   }
 
-  .xdecaro-notifications-footer-action {
+  .xdecaro-notifications-footer .xdecaro-notifications-footer-action {
     padding-inline: 0.35rem;
   }
 }
