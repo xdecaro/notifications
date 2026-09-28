@@ -1,0 +1,2 @@
+-- Notifications 1.1.12
+-- Administrator bell now shows only unread notifications and refills from the unread queue. No database structure or stored data changes.
