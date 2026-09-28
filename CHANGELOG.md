@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.10 — 2026-09-28
+
+### Administrator bell footer link contrast
+
+- Fixed **Open notification center** remaining white-on-white in Joomla administrator Light Mode while **Clear notifications** was visible.
+- The root cause was Atum's header link rule overriding the footer link color because it had higher selector specificity.
+- Increased only the Notifications footer action selector specificity so both the link and button use Joomla's theme-aware `--body-color` without `!important` or fixed colors.
+- Kept the existing Light/Dark footer background, separator and hover behavior unchanged.
+- Added a CI regression guard requiring a footer-scoped action selector that outranks Atum's header link color rules.
+- No notification logic, database structure or stored notification data changes.
+
 ## 1.1.9 — 2026-09-28
 
 ### Administrator bell footer theme contrast
@@ -84,7 +95,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 - Updated the module markup to follow Joomla's `header-item-icon` wrapper pattern.
 - Rendered the unread count as a compact badge overlaid on the bell icon while keeping the label and dropdown control on one toolbar row.
 - Added CI regression checks for the bell wrapper and overlaid badge markup.
-- No notification logic, database structure or stored notification data changes.
+- No notification table structure or stored notification data changes.
 
 ## 1.1.1 — 2026-09-15
 
