@@ -26,6 +26,10 @@ grep -qF "<version>${version}</version>" "$module/mod_xdecaronotifications.xml" 
 grep -qF '<folder>css</folder>' "$module/mod_xdecaronotifications.xml" || fail "module manifest must install bell CSS assets"
 grep -qF "getUnreadCount('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService unread-count API"
 grep -qF "getForRecipient('user'" "$module/mod_xdecaronotifications.php" || fail "initial module render must use NotificationService recipient query API"
+grep -qF "'state' => 'unread'" "$module/mod_xdecaronotifications.php" || fail "initial bell render must query only unread notifications"
+if grep -qF "'state' => ['unread', 'read']" "$module/mod_xdecaronotifications.php"; then
+  fail "initial bell render must not include read notifications"
+fi
 grep -qF 'bell.poll' "$module/tmpl/default.php" || fail "module layout must expose the bell.poll endpoint"
 grep -qF 'bell.markRead' "$module/tmpl/default.php" || fail "module layout must expose the current-user single-read endpoint"
 grep -qF 'bell.markAllRead' "$module/tmpl/default.php" || fail "module layout must expose the current-user mark-all-read endpoint"
@@ -99,6 +103,11 @@ grep -qF 'public function markAllRead(): void' "$controller" || fail "bell contr
 grep -qF "Session::checkToken('post')" "$controller" || fail "read-state endpoints must enforce Joomla POST CSRF validation"
 grep -qF "markReadForRecipient(\$notificationId, 'user', \$recipientId)" "$controller" || fail "single-read endpoint must scope the mutation to the authenticated Joomla user"
 grep -qF "'state' => 'unread'" "$controller" || fail "mark-all-read must iterate only unread notifications"
+bell_data_section="$(sed -n '/private function buildBellData/,/private function getNotificationsComponent/p' "$controller")"
+grep -qF "'state' => 'unread'" <<<"$bell_data_section" || fail "bell poll/read responses must return only unread notifications"
+if grep -qF "'state' => ['unread', 'read']" <<<"$bell_data_section"; then
+  fail "bell poll/read responses must not include read notifications"
+fi
 if grep -qF 'DELETE FROM' "$controller"; then
   fail "bell read-state actions must never physically delete notification rows"
 fi
