@@ -66,6 +66,7 @@ grep -qF 'xdecaro-notifications-footer' "$module/tmpl/default.php" || fail "bell
 grep -qF 'background-color: var(--body-bg);' "$module/media/css/admin-bell.css" || fail "footer background must follow Joomla's active light/dark body theme"
 grep -qF 'color: var(--body-color);' "$module/media/css/admin-bell.css" || fail "footer actions must use Joomla's active light/dark text color"
 grep -qF 'border-top: 1px solid color-mix(in srgb, var(--body-color) 24%, transparent);' "$module/media/css/admin-bell.css" || fail "footer separator must derive from Joomla's active theme text color"
+grep -qF '.xdecaro-notifications-footer .xdecaro-notifications-footer-action {' "$module/media/css/admin-bell.css" || fail "footer action selector must outrank Atum header link color rules"
 if grep -qF 'color: inherit;' "$module/media/css/admin-bell.css"; then
   fail "footer actions must not inherit the header dropdown's light text color in Joomla light mode"
 fi
