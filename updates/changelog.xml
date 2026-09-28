@@ -3,6 +3,19 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.12</version>
+    <change>
+      <item>Shows only the five latest unread notifications in the administrator bell instead of mixing unread and read items.</item>
+      <item>After marking one notification read, removes it from the bell immediately and fills the freed slot with the next unread notification when available.</item>
+      <item>Applies the unread-only queue to the initial PHP render and to poll/read responses, preserving the behavior across 10-second live refreshes.</item>
+      <item>Keeps read notifications stored and available in the notification center/history; Mark all as read only empties the bell queue.</item>
+      <item>Adds CI regression checks preventing read notifications from returning to the bell queue.</item>
+      <item>No database structure or stored notification data format changes.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.11</version>
     <change>
       <item>Replaces the bell Clear notifications archive action with Mark all as read so the current UI no longer removes notifications from active history.</item>
