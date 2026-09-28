@@ -157,7 +157,7 @@ final class BellController extends BaseController
     private function buildBellData($service, string $recipientId): array
     {
         $items = $service->getForRecipient('user', $recipientId, [
-            'state' => ['unread', 'read'],
+            'state' => 'unread',
             'limit' => 5,
         ]);
         $safeItems = [];
