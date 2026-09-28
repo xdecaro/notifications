@@ -1,0 +1,2 @@
+-- Notifications 1.1.10
+-- Administrator bell footer link specificity fix. No database structure or stored data changes.
