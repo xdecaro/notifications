@@ -2,6 +2,17 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.12 — 2026-09-28
+
+### Administrator bell unread queue
+
+- Changed the administrator bell dropdown to show only the five latest **unread** notifications instead of mixing unread and already-read items.
+- Marking one notification as read now removes it from the bell immediately and refills the five-row window with the next unread notification when one is available.
+- Applied the unread-only query to both the initial PHP module render and every poll/read response, so the behavior remains stable after the 10-second live refresh.
+- **Mark all as read** now leaves the bell empty while preserving every notification in the notification center/history.
+- Added CI regression checks preventing read notifications from reappearing in the bell queue.
+- No database structure or stored notification data format changes.
+
 ## 1.1.11 — 2026-09-28
 
 ### Administrator bell read actions
