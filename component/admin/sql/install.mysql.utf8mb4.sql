@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `#__xdecaronotifications_items` (
   `archived_at` DATETIME NULL,
   `expires_at` DATETIME NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_notifications_external` (`source_component`, `external_key`),
+  UNIQUE KEY `idx_notifications_external_recipient` (`source_component`, `external_key`, `recipient_type`, `recipient_id`),
   KEY `idx_notifications_recipient_state` (`recipient_type`, `recipient_id`, `state`),
   KEY `idx_notifications_source` (`source_component`, `source_entity`, `source_id`),
   KEY `idx_notifications_priority` (`priority`),
