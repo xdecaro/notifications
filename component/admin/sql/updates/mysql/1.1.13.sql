@@ -1,0 +1,12 @@
+-- Notifications candidate 1.1.13
+-- Idempotency changes from legacy UNIQUE idx_notifications_external
+-- (source_component, external_key) to UNIQUE idx_notifications_external_recipient
+-- (source_component, external_key, recipient_type, recipient_id).
+--
+-- The idempotent DDL migration is executed by component/script.php so it can:
+-- 1. inspect the actual installed indexes;
+-- 2. add the broader recipient-scoped UNIQUE constraint first;
+-- 3. drop the legacy stricter constraint only after the new one exists;
+-- 4. safely do nothing when the migration has already been applied.
+--
+-- No notification rows are rewritten or deleted.
