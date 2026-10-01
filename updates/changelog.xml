@@ -3,6 +3,19 @@
   <changelog>
     <element>pkg_xdecaronotifications</element>
     <type>package</type>
+    <version>1.1.13</version>
+    <change>
+      <item>Changes publication idempotency from source event only to source event plus recipient, allowing one external event to create distinct notifications for different recipients.</item>
+      <item>Adds explicit request accepted, submitted, delivered, failed and outcome unknown delivery semantics.</item>
+      <item>Blocks blind retries after an unknown provider outcome unless the channel explicitly guarantees idempotency for the stable Notifications delivery key.</item>
+      <item>Records Joomla mail transport acceptance as submitted instead of delivered and treats indeterminate send outcomes as outcome unknown.</item>
+      <item>Prevents arbitrary context email redirection for Joomla-user recipients while preserving explicit addressing for non-user recipients.</item>
+      <item>Adds the recipient-scoped UNIQUE key before removing the stricter legacy UNIQUE key; existing notification rows are neither rewritten nor deleted.</item>
+    </change>
+  </changelog>
+  <changelog>
+    <element>pkg_xdecaronotifications</element>
+    <type>package</type>
     <version>1.1.12</version>
     <change>
       <item>Shows only the five latest unread notifications in the administrator bell instead of mixing unread and read items.</item>
