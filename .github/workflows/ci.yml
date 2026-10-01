@@ -58,6 +58,15 @@ jobs:
           bash build/build.sh
           diff -u /tmp/SHA256SUMS.first dist/SHA256SUMS.txt
 
+      - name: Upload candidate build
+        if: matrix.php == '8.3'
+        uses: actions/upload-artifact@v4
+        with:
+          name: xdecaro-notifications-candidate-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
   joomla-install:
     name: Joomla ${{ matrix.joomla }} install
     runs-on: ubuntu-latest
