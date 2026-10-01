@@ -10,7 +10,7 @@
     <downloads>
       <downloadurl type="full" format="zip">https://github.com/xdecaro/notifications/releases/download/v1.1.13/pkg_xdecaronotifications_1.1.13.zip</downloadurl>
     </downloads>
-    <sha256>0000000000000000000000000000000000000000000000000000000000000000</sha256>
+    <sha256>17be767bc71a9a6ad4f0e9fd048d86442c12ccea46f3b61633934fbdc86d100a</sha256>
     <tags><tag>stable</tag></tags>
     <maintainer>Luca De Caro</maintainer>
     <maintainerurl>https://github.com/xdecaro/notifications</maintainerurl>
