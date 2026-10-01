@@ -50,7 +50,7 @@ final class DeliveriesModel extends ListModel
         }
 
         $state = (string) $this->getState('filter.state');
-        if (in_array($state, ['pending', 'processing', 'retry', 'delivered', 'failed'], true)) {
+        if (in_array($state, ['pending', 'processing', 'retry', 'submitted', 'delivered', 'failed', 'outcome_unknown'], true)) {
             $query->where($db->quoteName('d.state') . ' = :filter_state')->bind(':filter_state', $state);
         }
 
