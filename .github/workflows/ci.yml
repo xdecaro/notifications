@@ -180,3 +180,25 @@ jobs:
             echo "table_${table}=$count"
             test "$count" = "1"
           done
+
+      - name: Verify P0 recipient idempotency schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          MYSQL=(mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names joomla)
+
+          index_columns="$("${MYSQL[@]}" -e "SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index SEPARATOR ',') FROM information_schema.statistics WHERE table_schema='joomla' AND table_name='ntf_xdecaronotifications_items' AND index_name='idx_notifications_external_recipient';")"
+          echo "idempotency_index=$index_columns"
+          test "$index_columns" = "source_component,external_key,recipient_type,recipient_id"
+
+          "${MYSQL[@]}" -e "INSERT INTO ntf_xdecaronotifications_items (external_key,source_component,source_entity,source_id,recipient_type,recipient_id,category,priority,title,message,state,created,created_by) VALUES ('ci-shared-event','com_ci','test','event-1','user','1001','ci','normal','A','A','unread',NOW(),0), ('ci-shared-event','com_ci','test','event-1','user','1002','ci','normal','B','B','unread',NOW(),0);"
+
+          if "${MYSQL[@]}" -e "INSERT INTO ntf_xdecaronotifications_items (external_key,source_component,source_entity,source_id,recipient_type,recipient_id,category,priority,title,message,state,created,created_by) VALUES ('ci-shared-event','com_ci','test','event-1','user','1001','ci','normal','duplicate','duplicate','unread',NOW(),0);" 2>/tmp/p0-duplicate.err; then
+            echo 'Same event and same recipient duplicate was unexpectedly accepted.' >&2
+            exit 1
+          fi
+
+          grep -qi 'Duplicate entry' /tmp/p0-duplicate.err || { cat /tmp/p0-duplicate.err >&2; exit 1; }
+          count="$("${MYSQL[@]}" -e "SELECT COUNT(*) FROM ntf_xdecaronotifications_items WHERE source_component='com_ci' AND external_key='ci-shared-event';")"
+          echo "recipient_scoped_fixture_rows=$count"
+          test "$count" = "2"
