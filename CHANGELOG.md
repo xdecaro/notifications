@@ -2,6 +2,18 @@
 
 All notable changes to **Notifications by xdecaro** are documented here.
 
+## 1.1.13 — 2026-10-02
+
+### Autonomous delivery safety P0-A
+
+- Changes publication idempotency from source event only to source event plus recipient, allowing the same `external_key` to create distinct notifications for different recipients while keeping same-recipient publication idempotent.
+- Adds explicit delivery semantics for request accepted, submitted, delivered, failed and outcome unknown, so provider acceptance is no longer reported as confirmed delivery.
+- Prevents blind retries after an indeterminate provider outcome unless the delivery channel explicitly guarantees idempotency for the stable key supplied by Notifications.
+- Records Joomla mail transport acceptance as `submitted`; an indeterminate send result becomes `outcome_unknown` and is not blindly retried by the bundled email channel.
+- Protects Joomla-user recipients from arbitrary `context['email']` redirection while preserving explicit email addressing for non-user recipients.
+- Adds the recipient-scoped UNIQUE key on `source_component`, `external_key`, `recipient_type`, `recipient_id` before removing the stricter legacy UNIQUE key.
+- The migration is idempotent and does not rewrite or delete existing notification rows.
+
 ## 1.1.12 — 2026-09-28
 
 ### Administrator bell unread queue
@@ -34,7 +46,7 @@ All notable changes to **Notifications by xdecaro** are documented here.
 - The root cause was Atum's header link rule overriding the footer link color because it had higher selector specificity.
 - Increased only the Notifications footer action selector specificity so both the link and button use Joomla's theme-aware `--body-color` without `!important` or fixed colors.
 - Kept the existing Light/Dark footer background, separator and hover behavior unchanged.
-- Added a CI regression guard requiring a footer-scoped action selector that outranks Atum's header link color rules.
+- Added a CI regression guard requiring a footer-scoped action selector that outranks Atum header link color rules.
 - No notification logic, database structure or stored notification data changes.
 
 ## 1.1.9 — 2026-09-28
