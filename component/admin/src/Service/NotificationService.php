@@ -73,7 +73,7 @@ final class NotificationService
         }
 
         if ($externalKey !== '') {
-            $existing = $this->findByExternalKey($sourceComponent, $externalKey);
+            $existing = $this->findByExternalKey($sourceComponent, $externalKey, $recipientType, $recipientId);
             if ($existing !== null) {
                 return $existing;
             }
@@ -127,7 +127,7 @@ final class NotificationService
             $this->db->setQuery($query)->execute();
         } catch (RuntimeException $exception) {
             if ($externalKey !== '') {
-                $existing = $this->findByExternalKey($sourceComponent, $externalKey);
+                $existing = $this->findByExternalKey($sourceComponent, $externalKey, $recipientType, $recipientId);
                 if ($existing !== null) {
                     return $existing;
                 }
@@ -354,15 +354,23 @@ final class NotificationService
         return $this->db->getAffectedRows() > 0;
     }
 
-    private function findByExternalKey(string $sourceComponent, string $externalKey): ?int
-    {
+    private function findByExternalKey(
+        string $sourceComponent,
+        string $externalKey,
+        string $recipientType,
+        string $recipientId
+    ): ?int {
         $query = $this->db->getQuery(true)
             ->select($this->db->quoteName('id'))
             ->from($this->db->quoteName('#__xdecaronotifications_items'))
             ->where($this->db->quoteName('source_component') . ' = :source_component')
             ->where($this->db->quoteName('external_key') . ' = :external_key')
+            ->where($this->db->quoteName('recipient_type') . ' = :recipient_type')
+            ->where($this->db->quoteName('recipient_id') . ' = :recipient_id')
             ->bind(':source_component', $sourceComponent)
-            ->bind(':external_key', $externalKey);
+            ->bind(':external_key', $externalKey)
+            ->bind(':recipient_type', $recipientType)
+            ->bind(':recipient_id', $recipientId);
 
         $value = $this->db->setQuery($query)->loadResult();
 
