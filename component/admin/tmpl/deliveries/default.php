@@ -25,7 +25,7 @@ $liveRefreshSeconds = max(5, min(300, (int) ComponentHelper::getParams('com_xdec
                     <label class="form-label" for="filter_state"><?php echo Text::_('COM_XDECARONOTIFICATIONS_STATE'); ?></label>
                     <select class="form-select" id="filter_state" name="filter_state">
                         <option value=""><?php echo Text::_('JALL'); ?></option>
-                        <?php foreach (['pending', 'processing', 'retry', 'delivered', 'failed'] as $value) : ?>
+                        <?php foreach (['pending', 'processing', 'retry', 'submitted', 'delivered', 'failed', 'outcome_unknown'] as $value) : ?>
                             <option value="<?php echo $value; ?>"<?php echo $state === $value ? ' selected' : ''; ?>><?php echo Text::_('COM_XDECARONOTIFICATIONS_DELIVERY_STATE_' . strtoupper($value)); ?></option>
                         <?php endforeach; ?>
                     </select>
