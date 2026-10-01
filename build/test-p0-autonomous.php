@@ -51,7 +51,6 @@ namespace Xdecaro\Component\Notifications\Administrator\Event {
 namespace NotificationsP0Test {
     use Joomla\CMS\User\UserFactoryInterface;
     use ReflectionMethod;
-    use RuntimeException;
     use Xdecaro\Component\Notifications\Administrator\Service\DeliveryChannelInterface;
     use Xdecaro\Component\Notifications\Administrator\Service\DeliveryResult;
     use Xdecaro\Plugin\Notifications\Email\Extension\Email;
@@ -94,6 +93,14 @@ namespace NotificationsP0Test {
         $check($unknown->getStatus() === 'outcome_unknown', 'OUTCOME_UNKNOWN result must expose status=outcome_unknown.');
         $check(!$unknown->isSuccess(), 'OUTCOME_UNKNOWN must not be reported as successful delivery.');
         $check($unknown->getRetryAfterSeconds() === null, 'OUTCOME_UNKNOWN must not request blind retry by default.');
+
+        $safeUnknown = DeliveryResult::outcomeUnknown(
+            'provider_outcome_unknown',
+            'Provider outcome cannot be determined.',
+            'provider-ref',
+            30
+        );
+        $check($safeUnknown->getRetryAfterSeconds() === 30, 'Provider-aware unknown outcomes must be able to request a safe retry delay.');
     }
 
     $markerFile = $root . '/component/admin/src/Service/IdempotentDeliveryChannelInterface.php';
@@ -141,7 +148,15 @@ namespace NotificationsP0Test {
         $check(!$semantics::canSafelyRetryUnknown($plain), 'Provider without idempotency guarantee must not be retried after unknown outcome.');
         $key1 = $semantics::idempotencyKey(17, 'idempotent_test');
         $key2 = $semantics::idempotencyKey(17, 'idempotent_test');
+        $key3 = $semantics::idempotencyKey(18, 'idempotent_test');
         $check($key1 !== '' && $key1 === $key2, 'Provider idempotency key must be stable across retries.');
+        $check($key1 !== $key3, 'Different deliveries must not reuse the same provider idempotency key.');
+
+        require $root . '/component/admin/src/Service/InAppChannel.php';
+        $inApp = new \Xdecaro\Component\Notifications\Administrator\Service\InAppChannel();
+        $inAppResult = $inApp->deliver(['id' => 99]);
+        $check($semantics::canSafelyRetryUnknown($inApp), 'in_app must remain intrinsically idempotent.');
+        $check($inAppResult->getStatus() === 'delivered', 'in_app persistence must remain a confirmed DELIVERED result.');
     }
 
     final class FakeUserFactory implements UserFactoryInterface
@@ -205,11 +220,16 @@ namespace NotificationsP0Test {
     $installSql = file_get_contents($root . '/component/admin/sql/install.mysql.utf8mb4.sql');
     $deliverySource = file_get_contents($root . '/component/admin/src/Service/DeliveryService.php');
     $emailSource = file_get_contents($root . '/plugins/xdecaronotifications/email/src/Extension/Email.php');
+    $installerSource = file_get_contents($root . '/component/script.php');
 
     $check(strpos($notificationSource, 'findByExternalKey($sourceComponent, $externalKey, $recipientType, $recipientId)') !== false, 'external_key lookup must include recipient type and id.');
     $check(strpos($installSql, '`source_component`, `external_key`, `recipient_type`, `recipient_id`') !== false, 'Clean-install unique key must include recipient identity.');
+    $check(strpos($installerSource, 'ADD UNIQUE KEY') !== false, 'Migration must add recipient-scoped uniqueness before dropping legacy uniqueness.');
+    $check(strpos($installerSource, 'DROP INDEX') !== false, 'Migration must remove the legacy restrictive index.');
     $check(strpos($deliverySource, "'outcome_unknown'") !== false, 'DeliveryService must persist outcome_unknown.');
     $check(strpos($deliverySource, "'delivery_status'") !== false, 'Delivery status API must expose semantic delivery_status.');
+    $check(strpos($deliverySource, "unset(\$context['idempotency_key'])") !== false, 'Non-idempotent providers must not receive caller-controlled idempotency keys.');
+    $check(strpos($deliverySource, 'DeliverySemantics::canSafelyRetryUnknown($channel)') !== false, 'Unknown-outcome retry must be provider-aware.');
     $check(strpos($emailSource, 'DeliveryResult::submitted(') !== false, 'Email transport acceptance must map to SUBMITTED, not DELIVERED.');
 
     if ($failures !== []) {
