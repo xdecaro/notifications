@@ -52,10 +52,12 @@ final class Notifications extends CMSPlugin implements SubscriberInterface
             $stats = $component->getDeliveryService()->processPending($batch, $maxAttempts);
 
             $this->logTask(sprintf(
-                'Notifications queue: processed=%d delivered=%d failed=%d missing_adapter=%d skipped=%d',
+                'Notifications queue: processed=%d submitted=%d delivered=%d failed=%d outcome_unknown=%d missing_adapter=%d skipped=%d',
                 $stats['processed'],
+                $stats['submitted'],
                 $stats['delivered'],
                 $stats['failed'],
+                $stats['outcome_unknown'],
                 $stats['missing_adapter'],
                 $stats['skipped']
             ));
