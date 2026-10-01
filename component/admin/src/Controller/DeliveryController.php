@@ -38,8 +38,10 @@ final class DeliveryController extends BaseController
         $message = Text::sprintf(
             'COM_XDECARONOTIFICATIONS_QUEUE_RESULT',
             $stats['processed'],
+            $stats['submitted'],
             $stats['delivered'],
             $stats['failed'],
+            $stats['outcome_unknown'],
             $stats['missing_adapter'],
             $stats['skipped']
         );
