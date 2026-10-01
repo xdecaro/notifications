@@ -101,21 +101,29 @@ final class DeliveryService
         return (int) $this->db->insertid();
     }
 
-    /** @return array{processed:int,delivered:int,failed:int,missing_adapter:int,skipped:int} */
+    /**
+     * Worker API. Source components should enqueue and query status, not invoke
+     * queue processing directly.
+     *
+     * @return array{processed:int,submitted:int,delivered:int,failed:int,outcome_unknown:int,missing_adapter:int,skipped:int}
+     * @internal
+     */
     public function processPending(int $limit = 25, int $maxAttempts = 5): array
     {
         $limit       = max(1, min(100, $limit));
         $maxAttempts = max(1, min(50, $maxAttempts));
 
-        // A worker may terminate after claiming a delivery. Recover claims that
-        // have been stuck for 15 minutes so they can safely re-enter the queue.
-        $this->recoverStaleClaims(900);
+        // A crash after a provider call is not proof of failure. Recovery only
+        // retries when the adapter promises idempotency for the stable key.
+        $this->recoverStaleClaims(900, $maxAttempts);
 
         $rows = $this->getPendingCandidates($limit);
         $stats = [
             'processed'       => 0,
+            'submitted'       => 0,
             'delivered'       => 0,
             'failed'          => 0,
+            'outcome_unknown' => 0,
             'missing_adapter' => 0,
             'skipped'         => 0,
         ];
@@ -134,8 +142,11 @@ final class DeliveryService
                 continue;
             }
 
-            $channel = $this->channels->get((string) $row['channel']);
+            $channelName = (string) $row['channel'];
+            $channel = $this->channels->get($channelName);
             if ($channel === null) {
+                // No provider was invoked, therefore this is a certain pre-send
+                // condition and may safely remain pending.
                 $this->releaseClaim($deliveryId, 300, 'Delivery adapter is not registered.');
                 $stats['missing_adapter']++;
                 continue;
@@ -145,31 +156,51 @@ final class DeliveryService
             $notification = $this->getNotification((int) $row['notification_id']);
             $context      = $this->decodeContext($row['context'] ?? null);
 
+            if ($channel instanceof IdempotentDeliveryChannelInterface) {
+                // Callers cannot choose or replace the provider idempotency key.
+                $context['idempotency_key'] = DeliverySemantics::idempotencyKey($deliveryId, $channelName);
+            } else {
+                unset($context['idempotency_key']);
+            }
+
             try {
                 $result = $channel->deliver($notification, $context);
             } catch (Throwable $exception) {
-                $result = DeliveryResult::failed(
+                // Once deliver() was entered, an exception alone cannot prove
+                // that the external provider did not perform the operation.
+                $result = DeliveryResult::outcomeUnknown(
                     'channel_exception',
                     $exception->getMessage() !== '' ? $exception->getMessage() : get_class($exception),
+                    null,
                     300
                 );
             }
 
-            if ($result->isSuccess()) {
+            $status = $result->getStatus();
+            if ($status === DeliverySemantics::SUBMITTED || $status === DeliverySemantics::DELIVERED) {
                 $this->recordAttempt(
                     $deliveryId,
-                    (string) $row['channel'],
-                    'delivered',
+                    $channelName,
+                    $status,
                     $result->getProviderReference(),
                     null,
                     null,
                     null
                 );
-                $stats['delivered']++;
+                $stats[$status]++;
                 continue;
             }
 
             $retryAfter = $result->getRetryAfterSeconds();
+
+            if ($status === DeliverySemantics::OUTCOME_UNKNOWN) {
+                if (!DeliverySemantics::canSafelyRetryUnknown($channel)) {
+                    $retryAfter = null;
+                } elseif ($retryAfter === null) {
+                    $retryAfter = 300;
+                }
+            }
+
             if ((int) $row['attempts'] + 1 >= $maxAttempts) {
                 $retryAfter = null;
             }
@@ -180,14 +211,19 @@ final class DeliveryService
 
             $this->recordAttempt(
                 $deliveryId,
-                (string) $row['channel'],
-                'failed',
-                null,
+                $channelName,
+                $status,
+                $result->getProviderReference(),
                 (string) $result->getErrorCode(),
                 (string) $result->getErrorMessage(),
                 $retryAt
             );
-            $stats['failed']++;
+
+            if ($status === DeliverySemantics::OUTCOME_UNKNOWN) {
+                $stats['outcome_unknown']++;
+            } else {
+                $stats['failed']++;
+            }
         }
 
         return $stats;
@@ -217,7 +253,13 @@ final class DeliveryService
             ->order($this->db->quoteName('channel') . ' ASC')
             ->bind(':notification_id', $notificationId, ParameterType::INTEGER);
 
-        return (array) $this->db->setQuery($query)->loadAssocList();
+        $rows = (array) $this->db->setQuery($query)->loadAssocList();
+        foreach ($rows as &$row) {
+            $row['delivery_status'] = DeliverySemantics::publicStatus((string) $row['state']);
+        }
+        unset($row);
+
+        return $rows;
     }
 
     /** @return array<int,array<string,mixed>> */
@@ -246,33 +288,59 @@ final class DeliveryService
         return (array) $this->db->setQuery($query, 0, $limit)->loadAssocList();
     }
 
-    private function recoverStaleClaims(int $timeoutSeconds): void
+    /**
+     * A stale processing claim is an unknown provider outcome. Record it as an
+     * attempt. Retry only when the current provider explicitly guarantees that
+     * the stable idempotency key prevents a duplicate external side effect.
+     *
+     * @internal
+     */
+    private function recoverStaleClaims(int $timeoutSeconds, int $maxAttempts): void
     {
         $timeoutSeconds  = max(60, min(86400, $timeoutSeconds));
+        $maxAttempts     = max(1, min(50, $maxAttempts));
         $cutoff          = Factory::getDate('-' . $timeoutSeconds . ' seconds')->toSql();
-        $now             = Factory::getDate()->toSql();
-        $retryState      = 'retry';
         $processingState = 'processing';
-        $error           = 'Recovered stale delivery claim after worker interruption.';
 
         $query = $this->db->getQuery(true)
-            ->update($this->db->quoteName('#__xdecaronotifications_deliveries'))
-            ->set($this->db->quoteName('state') . ' = :retry_state')
-            ->set($this->db->quoteName('available_at') . ' = :available_at')
-            ->set($this->db->quoteName('updated') . ' = :updated')
-            ->set($this->db->quoteName('last_error') . ' = :last_error')
+            ->select([
+                $this->db->quoteName('id'),
+                $this->db->quoteName('channel'),
+                $this->db->quoteName('attempts'),
+            ])
+            ->from($this->db->quoteName('#__xdecaronotifications_deliveries'))
             ->where($this->db->quoteName('state') . ' = :processing_state')
             ->where($this->db->quoteName('updated') . ' < :cutoff')
-            ->bind(':retry_state', $retryState)
-            ->bind(':available_at', $now)
-            ->bind(':updated', $now)
-            ->bind(':last_error', $error)
+            ->order($this->db->quoteName('id') . ' ASC')
             ->bind(':processing_state', $processingState)
             ->bind(':cutoff', $cutoff);
 
-        $this->db->setQuery($query)->execute();
+        $rows = (array) $this->db->setQuery($query)->loadAssocList();
+
+        foreach ($rows as $row) {
+            $deliveryId = (int) $row['id'];
+            $channelName = (string) $row['channel'];
+            $channel = $this->channels->get($channelName);
+            $canRetry = $channel instanceof DeliveryChannelInterface
+                && DeliverySemantics::canSafelyRetryUnknown($channel)
+                && ((int) $row['attempts'] + 1 < $maxAttempts);
+            $retryAt = $canRetry ? Factory::getDate()->toSql() : null;
+
+            $this->recordAttempt(
+                $deliveryId,
+                $channelName,
+                DeliverySemantics::OUTCOME_UNKNOWN,
+                null,
+                'stale_claim_outcome_unknown',
+                $canRetry
+                    ? 'Recovered stale claim; safe retry allowed by provider idempotency guarantee.'
+                    : 'Recovered stale claim; provider outcome is unknown and blind retry is blocked.',
+                $retryAt
+            );
+        }
     }
 
+    /** @internal */
     private function claim(int $deliveryId): bool
     {
         $now             = Factory::getDate()->toSql();
@@ -299,6 +367,7 @@ final class DeliveryService
         return (int) $this->db->getAffectedRows() === 1;
     }
 
+    /** @internal */
     private function releaseClaim(int $deliveryId, int $delaySeconds, string $reason): void
     {
         $available       = Factory::getDate('+' . max(1, $delaySeconds) . ' seconds')->toSql();
@@ -325,6 +394,7 @@ final class DeliveryService
         $this->db->setQuery($query)->execute();
     }
 
+    /** @internal */
     private function markExhausted(int $deliveryId): void
     {
         $now         = Factory::getDate()->toSql();
@@ -403,6 +473,7 @@ final class DeliveryService
         return $value === null ? null : (int) $value;
     }
 
+    /** @internal */
     private function recordAttempt(
         int $deliveryId,
         string $provider,
@@ -418,6 +489,15 @@ final class DeliveryService
         $errorCode         = $this->truncateNullable($errorCode, 64);
         $errorMessage      = $this->truncateNullable($errorMessage, 1000);
         $processingState   = 'processing';
+
+        if (!in_array($attemptState, [
+            DeliverySemantics::SUBMITTED,
+            DeliverySemantics::DELIVERED,
+            DeliverySemantics::FAILED,
+            DeliverySemantics::OUTCOME_UNKNOWN,
+        ], true)) {
+            throw new InvalidArgumentException('Invalid delivery attempt state.');
+        }
 
         $this->db->transactionStart();
 
@@ -443,9 +523,15 @@ final class DeliveryService
                 ->bind(':created', $now);
             $this->db->setQuery($attempt)->execute();
 
-            $deliveryState = $attemptState === 'delivered'
-                ? 'delivered'
-                : ($retryAt !== null ? 'retry' : 'failed');
+            if ($attemptState === DeliverySemantics::DELIVERED) {
+                $deliveryState = DeliverySemantics::DELIVERED;
+            } elseif ($attemptState === DeliverySemantics::SUBMITTED) {
+                $deliveryState = DeliverySemantics::SUBMITTED;
+            } elseif ($retryAt !== null) {
+                $deliveryState = 'retry';
+            } else {
+                $deliveryState = $attemptState;
+            }
 
             $sets = [
                 $this->db->quoteName('state') . ' = :delivery_state',
@@ -455,7 +541,7 @@ final class DeliveryService
                 $this->db->quoteName('last_error') . ' = :last_error',
             ];
 
-            if ($deliveryState === 'delivered') {
+            if ($deliveryState === DeliverySemantics::DELIVERED) {
                 $sets[] = $this->db->quoteName('delivered_at') . ' = :delivered_at';
             }
             if ($retryAt !== null) {
@@ -474,7 +560,7 @@ final class DeliveryService
                 ->bind(':delivery_id', $deliveryId, ParameterType::INTEGER)
                 ->bind(':processing_state', $processingState);
 
-            if ($deliveryState === 'delivered') {
+            if ($deliveryState === DeliverySemantics::DELIVERED) {
                 $delivery->bind(':delivered_at', $now);
             }
             if ($retryAt !== null) {
