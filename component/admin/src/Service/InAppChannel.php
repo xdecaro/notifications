@@ -3,7 +3,7 @@ namespace Xdecaro\Component\Notifications\Administrator\Service;
 
 defined('_JEXEC') or die;
 
-final class InAppChannel implements DeliveryChannelInterface
+final class InAppChannel implements IdempotentDeliveryChannelInterface
 {
     public function getName(): string
     {
@@ -13,7 +13,8 @@ final class InAppChannel implements DeliveryChannelInterface
     public function deliver(array $notification, array $context = []): DeliveryResult
     {
         // Persistence of the notification item is the in-app delivery itself.
-        // This adapter exists so the delivery lifecycle/status remains uniform.
+        // Reprocessing the same delivery is intrinsically idempotent because no
+        // external side effect is performed by this adapter.
         return DeliveryResult::delivered('notification:' . (string) ($notification['id'] ?? ''));
     }
 }
