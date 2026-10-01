@@ -41,7 +41,11 @@ final class Email extends CMSPlugin implements SubscriberInterface, DeliveryChan
 
     public function deliver(array $notification, array $context = []): DeliveryResult
     {
-        [$email, $name] = $this->resolveRecipient($notification, $context);
+        [$email, $name, $recipientError] = $this->resolveRecipient($notification, $context);
+
+        if ($recipientError !== null) {
+            return DeliveryResult::failed($recipientError, 'The requested email destination is not authorized for this recipient.');
+        }
 
         if ($email === '') {
             return DeliveryResult::failed('recipient_email_missing', 'No valid email address is available for the notification recipient.');
@@ -63,45 +67,78 @@ final class Email extends CMSPlugin implements SubscriberInterface, DeliveryChan
             $mailer->addRecipient($email, $name);
             $mailer->setSubject($subject);
             $mailer->setBody($body);
-            $mailer->send();
-
-            return DeliveryResult::delivered('joomla-mail');
         } catch (Throwable $exception) {
             $message = trim($exception->getMessage());
-            return DeliveryResult::failed('mail_send_failed', $message !== '' ? $message : 'Joomla mailer failed to send the notification.', 300);
+            return DeliveryResult::failed(
+                'mail_prepare_failed',
+                $message !== '' ? $message : 'Joomla mailer could not prepare the notification.',
+                300
+            );
         }
+
+        try {
+            $sent = $mailer->send();
+        } catch (Throwable $exception) {
+            $message = trim($exception->getMessage());
+            return DeliveryResult::outcomeUnknown(
+                'mail_send_outcome_unknown',
+                $message !== '' ? $message : 'Joomla mailer could not confirm whether the transport accepted the notification.'
+            );
+        }
+
+        if ($sent !== true) {
+            return DeliveryResult::outcomeUnknown(
+                'mail_send_outcome_unknown',
+                'Joomla mailer did not confirm transport acceptance.'
+            );
+        }
+
+        // Joomla mail transport acceptance is not proof of delivery to the
+        // recipient mailbox. Keep it explicitly at SUBMITTED.
+        return DeliveryResult::submitted('joomla-mail');
     }
 
-    /** @return array{0:string,1:string} */
+    /** @return array{0:string,1:string,2:string|null} */
     private function resolveRecipient(array $notification, array $context): array
     {
-        $email = trim((string) ($context['email'] ?? ''));
-        $name = $this->cleanHeader((string) ($context['recipient_name'] ?? ''));
+        $recipientType = (string) ($notification['recipient_type'] ?? '');
+        $contextEmail  = trim((string) ($context['email'] ?? ''));
 
-        if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return [$email, $name];
-        }
+        if ($recipientType !== 'user') {
+            if ($contextEmail !== '' && filter_var($contextEmail, FILTER_VALIDATE_EMAIL)) {
+                return [
+                    $contextEmail,
+                    $this->cleanHeader((string) ($context['recipient_name'] ?? '')),
+                    null,
+                ];
+            }
 
-        if ((string) ($notification['recipient_type'] ?? '') !== 'user') {
-            return ['', ''];
+            return ['', '', null];
         }
 
         $id = (string) ($notification['recipient_id'] ?? '');
         if ($id === '' || !ctype_digit($id) || (int) $id < 1) {
-            return ['', ''];
+            return ['', '', null];
         }
 
         try {
             $user = $this->userFactory->loadUserById((int) $id);
         } catch (Throwable $exception) {
-            return ['', ''];
+            return ['', '', null];
         }
 
         if ((int) $user->id < 1 || (int) $user->block === 1 || !filter_var((string) $user->email, FILTER_VALIDATE_EMAIL)) {
-            return ['', ''];
+            return ['', '', null];
         }
 
-        return [(string) $user->email, $this->cleanHeader((string) $user->name)];
+        $canonicalEmail = trim((string) $user->email);
+        if ($contextEmail !== '') {
+            if (!filter_var($contextEmail, FILTER_VALIDATE_EMAIL) || strcasecmp($contextEmail, $canonicalEmail) !== 0) {
+                return ['', '', 'recipient_email_override_forbidden'];
+            }
+        }
+
+        return [$canonicalEmail, $this->cleanHeader((string) $user->name), null];
     }
 
     private function createMailer()
