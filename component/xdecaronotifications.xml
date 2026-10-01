@@ -9,6 +9,7 @@
   <version>1.1.12</version>
   <description>COM_XDECARONOTIFICATIONS_XML_DESCRIPTION</description>
   <namespace path="src">Xdecaro\Component\Notifications</namespace>
+  <scriptfile>script.php</scriptfile>
 
   <administration>
     <menu view="dashboard">COM_XDECARONOTIFICATIONS_DASHBOARD</menu>
